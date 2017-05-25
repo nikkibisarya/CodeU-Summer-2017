@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.LinearUuidGenerator;
@@ -45,7 +45,7 @@ public final class Server {
   private interface Command {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
-
+  private static final ServerInfo info = new ServerInfo();
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
@@ -70,6 +70,7 @@ public final class Server {
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
+    
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
@@ -178,6 +179,7 @@ public final class Server {
         try {
 
           LOG.info("Reading update from relay...");
+          
 
           for (final Relay.Bundle bundle : relay.read(id, secret, lastSeen, 32)) {
             onBundle(bundle);
@@ -205,7 +207,15 @@ public final class Server {
 
           final int type = Serializers.INTEGER.read(connection.in());
           final Command command = commands.get(type);
-
+          if (type == NetworkCode.SERVER_INFO_REQUEST) {
+            Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_RESPONSE);
+            Uuid.SERIALIZER.write(connection.out(), info.version);
+          } 
+          else {
+            Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);
+                  LOG.info("Request rejected");
+          }
+          
           if (command == null) {
             // The message type cannot be handled so return a dummy message.
             Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);

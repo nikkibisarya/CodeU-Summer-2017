@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
-
+import codeu.chat.common.ServerInfo;
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
@@ -91,7 +91,8 @@ public final class Chat {
   private Panel createRootPanel(final Context context) {
 
     final Panel panel = new Panel();
-
+  
+ 
     // HELP
     //
     // Add a command to print a list of all commands and their description when
@@ -180,6 +181,30 @@ public final class Chat {
         return null;
       }
     });
+    // INFO (Updated context)
+  //
+  // Add a command to use the updated context
+  // Prints the server info to the user.
+  //  if info is null, the server did not send us a valid info object.
+    panel.register("info", new Panel.Command() {
+      @Override
+      public void invoke(Scanner args) {
+        final ServerInfo info = context.getInfo();
+        if (info == null) {
+          // Communicate error to user - the server did not send us a valid
+                  // info object.
+          System.out.println("ERROR: The server send us an invalid info object. Failed to retrieve Up Time of server.");
+
+        } else {
+          // Print the server info to the user in a pretty way
+        
+          System.out.println("Up-time:" + info);
+          
+        }
+      }
+    });
+
+
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.

@@ -209,7 +209,7 @@ public final class Server {
           final Command command = commands.get(type);
           if (type == NetworkCode.SERVER_INFO_REQUEST) {
             Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_RESPONSE);
-            Uuid.SERIALIZER.write(connection.out(), info.version);
+            Time.SERIALIZER.write(connection.out(), info.startTime);
           } 
           else {
             Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);

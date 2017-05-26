@@ -23,6 +23,7 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
 
+
 // BASIC VIEW
 //
 //   The view component in the Model-View-Controller pattern. This component
@@ -38,7 +39,7 @@ public interface BasicView {
   //   Return all users whose id is found in the given collection.
   Collection<User> getUsers();
   //Get Info
-
+  ServerInfo getInfo();
 
 
   // GET ALL CONVERSATIONS

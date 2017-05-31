@@ -224,6 +224,8 @@ public final class Chat {
       @Override
       public void invoke(Scanner args) {
         System.out.println("USER MODE");
+        System.out.println("  info");
+        System.out.println("  Check uptime of chat");
         System.out.println("  c-list");
         System.out.println("    List all conversations that the current user can interact with.");
         System.out.println("  c-add <title>");

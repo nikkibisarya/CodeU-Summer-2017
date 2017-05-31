@@ -18,6 +18,11 @@ public final class ServerInfo {
     public Time getTime() {
           return this.startTime;
     }
+    @Override
+    public String toString()
+    {
+      return getTime().toString();
+    }
 
 }
 

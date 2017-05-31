@@ -175,10 +175,12 @@ public final class Server {
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
     @Override
     public void onMessage(InputStream in, OutputStream out) throws IOException {
-      Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-      Time.SERIALIZER.write(out, info.startTime);
-    }
-    });
+      final Time startTime = Server.info.getTime();
+
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Time.SERIALIZER.write(out, startTime);
+       }
+     });
 
 
     this.timeline.scheduleNow(new Runnable() {

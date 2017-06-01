@@ -91,7 +91,6 @@ public final class Chat {
   private Panel createRootPanel(final Context context) {
 
     final Panel panel = new Panel();
-  
  
     // HELP
     //
@@ -169,7 +168,27 @@ public final class Chat {
           System.out.println("ERROR: Missing <username>");
         }
       }
+    // INFO (Updated context)
+    //
+    // Add a command to use the updated context
+    // Prints the server info to the user.
+    //  if info is null, the server did not send us a valid info object.
+    //
+    panel.register("info", new Panel.Command() {
+      @Override
+      public void invoke(Scanner args) {
+        final ServerInfo info = context.getInfo();
+        if (info == null) {
+          // Communicate error to user - the server did not send us a valid
+          // info object.
+          System.out.println("ERROR: The server send us an invalid info object. Failed to retrieve Up Time of server.");
 
+        } else {
+          // Print the server info (uptime) to the user in a pretty way
+          System.out.println("Up-time:" + info);     
+        }
+      }
+    });
       // Find the first user with the given name and return a user context
       // for that user. If no user is found, the function will return null.
       private UserContext findUser(String name) {
@@ -181,31 +200,6 @@ public final class Chat {
         return null;
       }
     });
-    // INFO (Updated context)
-  //
-  // Add a command to use the updated context
-  // Prints the server info to the user.
-  //  if info is null, the server did not send us a valid info object.
-    panel.register("info", new Panel.Command() {
-      @Override
-      public void invoke(Scanner args) {
-        final ServerInfo info = context.getInfo();
-        if (info == null) {
-          // Communicate error to user - the server did not send us a valid
-                  // info object.
-          System.out.println("ERROR: The server send us an invalid info object. Failed to retrieve Up Time of server.");
-
-        } else {
-          // Print the server info to the user in a pretty way
-        
-          System.out.println("Up-time:" + info);
-          
-        }
-      }
-    });
-
-
-
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
     return panel;
@@ -225,7 +219,7 @@ public final class Chat {
       public void invoke(Scanner args) {
         System.out.println("USER MODE");
         System.out.println("  info");
-        System.out.println("  Check uptime of chat");
+        System.out.println("  The uptime of chat server");
         System.out.println("  c-list");
         System.out.println("    List all conversations that the current user can interact with.");
         System.out.println("  c-add <title>");

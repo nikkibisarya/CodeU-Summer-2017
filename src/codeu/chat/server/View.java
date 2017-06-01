@@ -14,7 +14,6 @@
 
 package codeu.chat.server;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +54,8 @@ public final class View implements BasicView, SinglesView {
   public Collection<User> getUsers() {
     return all(model.userById());
   }
-   @Override
+
+  @Override
   public ServerInfo getInfo() {
     return null;
   }

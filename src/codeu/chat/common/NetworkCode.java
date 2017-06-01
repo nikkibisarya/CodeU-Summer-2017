@@ -16,8 +16,6 @@ package codeu.chat.common;
 
 
 public final class NetworkCode {
-  public static final int SERVER_INFO_REQUEST = 31;
-  public static final int SERVER_INFO_RESPONSE = 32;
   public static final int
       NO_MESSAGE = 0,
       GET_USERS_REQUEST = 1,
@@ -38,7 +36,7 @@ public final class NetworkCode {
       RELAY_READ_RESPONSE = 28,
       RELAY_WRITE_REQUEST = 29,
       RELAY_WRITE_RESPONSE = 30;
-    
-
+      SERVER_INFO_REQUEST = 31;
+      SERVER_INFO_RESPONSE = 32;
 
 }

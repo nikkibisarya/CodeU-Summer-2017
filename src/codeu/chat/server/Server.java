@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -45,6 +46,7 @@ public final class Server {
   private interface Command {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
+
   private static final ServerInfo info = new ServerInfo();
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
@@ -70,7 +72,6 @@ public final class Server {
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
-    
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
@@ -172,14 +173,16 @@ public final class Server {
         Serializers.collection(Message.SERIALIZER).write(out, messages);
       }
     });
-    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
-    @Override
-    public void onMessage(InputStream in, OutputStream out) throws IOException {
-      final Time upTime = Server.info.getTime();
 
-        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Time.SERIALIZER.write(out, upTime);
-       }
+    // Gets Up-Time
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Time upTime = Server.info.getTime();
+
+          Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+          Time.SERIALIZER.write(out, upTime);
+      }
      });
 
 
@@ -189,7 +192,6 @@ public final class Server {
         try {
 
           LOG.info("Reading update from relay...");
-          
 
           for (final Relay.Bundle bundle : relay.read(id, secret, lastSeen, 32)) {
             onBundle(bundle);
@@ -217,14 +219,6 @@ public final class Server {
 
           final int type = Serializers.INTEGER.read(connection.in());
           final Command command = commands.get(type);
-/*          if (type == NetworkCode.SERVER_INFO_REQUEST) {
-            Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_RESPONSE);
-            Time.SERIALIZER.write(connection.out(), Server.info.getInfo());
-          } 
-          else {
-            Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);
-                  LOG.info("Request rejected");
-          }*/
           
           if (command == null) {
             // The message type cannot be handled so return a dummy message.

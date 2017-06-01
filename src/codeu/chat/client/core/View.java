@@ -62,6 +62,7 @@ final class View implements BasicView {
       LOG.error(ex, "Exception during call on server. There is something wrong with the connection.");
   }
   // If we get here it means something went wrong and null should be returned
+  LOG.error("Something went wrong.")
   return null;
 }
 

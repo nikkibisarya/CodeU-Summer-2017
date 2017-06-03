@@ -1,7 +1,7 @@
 package codeu.chat.util;
 
 import java.io.IOException;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 public final class TokenizerTest {

@@ -14,7 +14,10 @@
 
 package codeu.chat.client.commandline;
 
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.lang.String;
+import java.util.List;
 
 // PANEL
 //
@@ -48,7 +51,7 @@ final class Panel {
   //
   public boolean handleCommand(String commandName, List<String>args) {
     final Command command = commands.get(commandName);
-    if(command != null){
+    if(command != null) {
       command.invoke(args);
     }
     return command != null;

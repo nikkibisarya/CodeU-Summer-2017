@@ -50,7 +50,9 @@ public final class View implements BasicView, SinglesView {
   }
 
   @Override
-  public ServerInfo getInfo(){return null;}
+  public ServerInfo getInfo() {
+    return null;
+  }
 
   @Override
   public Collection<User> getUsers() {

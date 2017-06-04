@@ -15,8 +15,7 @@ public final class ServerInfo {
         try {
             this.version = Uuid.parse(SERVER_VERSION);
         }
-        catch(IOException e)
-        {
+        catch(IOException e) {
             //this.version = Uuid.NULL;
         }
     }
@@ -29,8 +28,7 @@ public final class ServerInfo {
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return getVersion().toString();
     }
 }

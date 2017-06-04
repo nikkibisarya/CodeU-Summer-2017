@@ -145,10 +145,13 @@ final class View implements BasicView {
         final Uuid version = Uuid.SERIALIZER.read(connection.in());
         return new ServerInfo(version);
       } else {
+        LOG.error("Response from server failed.");
         // Communicate this error - the server did not respond with the type of
         // response we expected.
       }
     } catch (Exception ex) {
+      System.out.println("ERROR: Something went wrong with the connection.  Check log for details.");
+      LOG.error(ex, "Something went wrong with the connection.");
       // Communicate this error - something went wrong with the connection.
     }
     // If we get here it means something went wrong and null should be returned

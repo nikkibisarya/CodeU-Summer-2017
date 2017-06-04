@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
+
 import codeu.chat.common.ServerInfo;
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
@@ -100,7 +101,6 @@ public final class Chat {
     panel.register("help", new Panel.Command() {
       @Override
       public void invoke(Scanner args) {
-
         System.out.println("ROOT MODE");
         System.out.println("  info");
         System.out.println("    Check the version of server.");
@@ -121,10 +121,7 @@ public final class Chat {
         final ServerInfo info = context.getInfo();
         if (info == null) {
           System.out.println("Failed to get version number.");
-          // Communicate error to user - the server did not send us a valid
-          // info object.
         } else {
-          // Print the server info to the user in a pretty way
           System.out.println(info);
         }
       }
@@ -198,8 +195,6 @@ public final class Chat {
         return null;
       }
     });
-
-
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.

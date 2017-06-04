@@ -168,6 +168,7 @@ public final class Chat {
           System.out.println("ERROR: Missing <username>");
         }
       }
+    
     // INFO (Updated context)
     //
     // Add a command to use the updated context
@@ -182,7 +183,6 @@ public final class Chat {
           // Communicate error to user - the server did not send us a valid
           // info object.
           System.out.println("ERROR: The server send us an invalid info object. Failed to retrieve Up Time of server.");
-
         } else {
           // Print the server info (uptime) to the user in a pretty way
           System.out.println("Up-time:" + info);     

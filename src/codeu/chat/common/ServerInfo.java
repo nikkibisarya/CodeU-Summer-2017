@@ -22,5 +22,3 @@ public final class ServerInfo {
       return getTime().toString();
     }
 }
-
-

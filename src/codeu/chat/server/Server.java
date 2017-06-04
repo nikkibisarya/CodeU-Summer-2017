@@ -185,7 +185,6 @@ public final class Server {
       }
      });
 
-
     this.timeline.scheduleNow(new Runnable() {
       @Override
       public void run() {

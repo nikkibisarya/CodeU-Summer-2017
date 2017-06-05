@@ -33,6 +33,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -55,6 +56,7 @@ public final class Server {
   private final Timeline timeline = new Timeline();
 
   private final Map<Integer, Command> commands = new HashMap<>();
+  private static final ServerInfo info = new ServerInfo();
 
   private final Uuid id;
   private final Secret secret;
@@ -133,7 +135,8 @@ public final class Server {
       }
     });
 
-    // Get Conversations - A client wants to get all the conversations from the back end.
+    // Get Conve
+rsations - A client wants to get all the conversations from the back end.
     this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -184,6 +187,7 @@ public final class Server {
           Time.SERIALIZER.write(out, upTime);
       }
      });
+
 
     this.timeline.scheduleNow(new Runnable() {
       @Override

@@ -37,6 +37,7 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.store.StoreAccessor;
 
 public final class View implements BasicView, SinglesView {
@@ -49,6 +50,10 @@ public final class View implements BasicView, SinglesView {
     this.model = model;
   }
 
+  @Override
+  public ServerInfo getInfo() {
+    return null;
+  }
 
   @Override
   public Collection<User> getUsers() {

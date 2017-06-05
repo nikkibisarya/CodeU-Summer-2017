@@ -16,7 +16,7 @@ package codeu.chat.client.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -46,6 +46,27 @@ final class View implements BasicView {
     this.source = source;
   }
 
+  public ServerInfo getInfo() {
+  try (final Connection connection = source.connect()) {
+    Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+    if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+      final Time startTime = Time.SERIALIZER.read(connection.in());
+      return new ServerInfo(startTime);
+    } else {
+      // Communicate this error - the server did not respond with the type of
+      // response we expected.
+      LOG.error("Response from server failed.");
+    }
+  } catch (Exception ex) {
+    // Communicate this error - something went wrong with the connection.
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server. There is something wrong with the connection.");
+  }
+  // If we get here it means something went wrong and null should be returned
+  LOG.error("Something went wrong.")
+  return null;
+}
+
   @Override
   public Collection<User> getUsers() {
 
@@ -63,7 +84,7 @@ final class View implements BasicView {
 
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
-      LOG.error(ex, "Exception during call on server.");
+      LOG.error(ex, "Exception during call on server. There is something wrong with the connection.");
     }
 
     return users;

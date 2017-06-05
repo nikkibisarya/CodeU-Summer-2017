@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.LinearUuidGenerator;
@@ -47,6 +48,7 @@ public final class Server {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
 
+  private static final ServerInfo info = new ServerInfo();
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
@@ -133,7 +135,8 @@ public final class Server {
       }
     });
 
-    // Get Conversations - A client wants to get all the conversations from the back end.
+    // Get Conve
+rsations - A client wants to get all the conversations from the back end.
     this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -174,15 +177,17 @@ public final class Server {
       }
     });
 
+    // Gets Up-Time
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
-        final Uuid version = Server.info.getVersion();
+        final Time upTime = Server.info.getTime();
 
-        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, version);
+          Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+          Time.SERIALIZER.write(out, upTime);
       }
-    });
+     });
+
 
     this.timeline.scheduleNow(new Runnable() {
       @Override
@@ -217,7 +222,7 @@ public final class Server {
 
           final int type = Serializers.INTEGER.read(connection.in());
           final Command command = commands.get(type);
-
+          
           if (command == null) {
             // The message type cannot be handled so return a dummy message.
             Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);

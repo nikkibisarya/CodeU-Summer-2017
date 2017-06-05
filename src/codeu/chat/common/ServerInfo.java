@@ -1,34 +1,25 @@
 package codeu.chat.common;
 
-/**
- * Created by Nikki on 5/22/17.
- */
-import codeu.chat.util.Uuid;
-
-import java.io.IOException;
+import codeu.chat.util.Time;
 
 public final class ServerInfo {
-    private final static String SERVER_VERSION = "1.0.0";
-
-    private Uuid version;
+  public final Time startTime;
     public ServerInfo() {
-        try {
-            this.version = Uuid.parse(SERVER_VERSION);
-        }
-        catch(IOException e) {
-            //this.version = Uuid.NULL;
-        }
-    }
-    public ServerInfo(Uuid version) {
-        this.version = version;
+      this.startTime = Time.now();            
     }
 
-    public Uuid getVersion() {
-        return (this.version == null) ? Uuid.NULL : version;
+    public ServerInfo(Time startTime) {
+      this.startTime = startTime;
+    }
+
+    public Time getTime() {
+          return this.startTime;
     }
 
     @Override
-    public String toString() {
-        return getVersion().toString();
+    public String toString()
+    {
+      return getTime().toString();
+
     }
 }

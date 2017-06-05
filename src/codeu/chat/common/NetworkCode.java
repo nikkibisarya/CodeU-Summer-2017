@@ -14,8 +14,8 @@
 
 package codeu.chat.common;
 
-public final class NetworkCode {
 
+public final class NetworkCode {
   public static final int
       NO_MESSAGE = 0,
       GET_USERS_REQUEST = 1,

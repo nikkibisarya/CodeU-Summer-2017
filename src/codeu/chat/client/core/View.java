@@ -16,7 +16,7 @@ package codeu.chat.client.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.UptimeInfo;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -46,12 +46,12 @@ final class View implements BasicView {
     this.source = source;
   }
 
-  public ServerInfo getInfo() {
+  public UptimeInfo getInfo() {
   try (final Connection connection = source.connect()) {
     Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
     if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
       final Time startTime = Time.SERIALIZER.read(connection.in());
-      return new ServerInfo(startTime);
+      return new UptimeInfo(startTime);
     } else {
       // Communicate this error - the server did not respond with the type of
       // response we expected.

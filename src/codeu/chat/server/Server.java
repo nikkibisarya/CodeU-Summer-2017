@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.UptimeInfo;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.LinearUuidGenerator;
@@ -33,7 +33,6 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
-import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -48,7 +47,7 @@ public final class Server {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
 
-  private static final ServerInfo info = new ServerInfo();
+  private static final UptimeInfo info = new UptimeInfo();
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds

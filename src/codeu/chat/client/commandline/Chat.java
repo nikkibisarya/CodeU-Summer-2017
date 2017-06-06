@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
 
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.UptimeInfo;
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
@@ -199,10 +199,10 @@ public final class Chat {
     // Prints the server info to the user.
     //  if info is null, the server did not send us a valid info object.
     //
-    panel.register("info", new Panel.Command() {
+    panel.register("uptime", new Panel.Command() {
       @Override
       public void invoke(Scanner args) {
-        final ServerInfo info = context.getInfo();
+        final UptimeInfo info = context.getInfo();
         if (info == null) {
           // Communicate error to user - the server did not send us a valid
           // info object.
@@ -242,7 +242,7 @@ public final class Chat {
       @Override
       public void invoke(List<String> args) {
         System.out.println("USER MODE");
-        System.out.println("  info");
+        System.out.println("  uptime");
         System.out.println("  The uptime of chat server");
         System.out.println("  c-list");
         System.out.println("    List all conversations that the current user can interact with.");

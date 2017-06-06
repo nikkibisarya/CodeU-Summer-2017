@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.UptimeInfo;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.User;
 
@@ -31,7 +31,7 @@ public final class Context {
   private final BasicView view;
   private final Controller controller;
   
-  public ServerInfo getInfo() {
+  public UptimeInfo getInfo() {
     return view.getInfo();  
   }
 
@@ -53,10 +53,6 @@ public final class Context {
       users.add(new UserContext(user, view, controller));
     }
     return users;
-  }
-
-  public ServerInfo getInfo() {
-    return view.getInfo();
   }
 
 }

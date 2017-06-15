@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import codeu.chat.common.UptimeInfo;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.LinearUuidGenerator;
@@ -47,7 +47,7 @@ public final class Server {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
 
-  private static final UptimeInfo info = new UptimeInfo();
+  private static final ServerInfo info = new ServerInfo();
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
@@ -55,7 +55,6 @@ public final class Server {
   private final Timeline timeline = new Timeline();
 
   private final Map<Integer, Command> commands = new HashMap<>();
-  private static final ServerInfo info = new ServerInfo();
 
   private final Uuid id;
   private final Secret secret;
@@ -134,8 +133,7 @@ public final class Server {
       }
     });
 
-    // Get Conve
-rsations - A client wants to get all the conversations from the back end.
+    // Get Conversations - A client wants to get all the conversations from the back end.
     this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -176,14 +174,16 @@ rsations - A client wants to get all the conversations from the back end.
       }
     });
 
-    // Gets Up-Time
+    // Gets Up-Time and Version
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         final Time upTime = Server.info.getTime();
+        final Uuid version = Server.info.getVersion();
 
-          Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-          Time.SERIALIZER.write(out, upTime);
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Time.SERIALIZER.write(out, upTime);
+        Uuid.SERIALIZER.write(out, version);
       }
      });
 
@@ -221,7 +221,7 @@ rsations - A client wants to get all the conversations from the back end.
 
           final int type = Serializers.INTEGER.read(connection.in());
           final Command command = commands.get(type);
-          
+
           if (command == null) {
             // The message type cannot be handled so return a dummy message.
             Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);

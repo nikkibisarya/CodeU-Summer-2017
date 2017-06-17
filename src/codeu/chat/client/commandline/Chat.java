@@ -52,7 +52,7 @@ public final class Chat {
 
     final List<String> args = new ArrayList<>();
     final Tokenizer tokenizer = new Tokenizer(line);
-    for (String token = tokenizer.next(); token != null; token = tokenizer.next()){
+    for (String token = tokenizer.next(); token != null; token = tokenizer.next()) {
       args.add(token);
     }
     final String command = args.get(0);

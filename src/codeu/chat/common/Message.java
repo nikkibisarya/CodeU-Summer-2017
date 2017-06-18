@@ -23,9 +23,15 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class Message {
+import java.lang.String;
+
+public final class Message extends Writeable {
 
   public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
+
+    public String getType() {
+      return "message";
+    }
 
     @Override
     public void write(OutputStream out, Message value) throws IOException {

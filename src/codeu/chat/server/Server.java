@@ -41,6 +41,12 @@ import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 
+import codeu.chat.server.fileWriter;
+import codeu.chat.common.Writeable;
+import java.lang.Thread;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 public final class Server {
 
   private interface Command {
@@ -66,12 +72,19 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
+  private fileWriter filewriter;
+
+
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
     this.id = id;
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
+
+    BlockingQueue<Writeable> blockq = new LinkedBlockingQueue<Writeable>();
+    this.filewriter = new fileWriter(blockq);
+    new Thread(this.filewriter).start();
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {

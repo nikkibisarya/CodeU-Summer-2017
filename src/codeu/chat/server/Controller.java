@@ -26,6 +26,7 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.Writeable;
 
 public final class Controller implements RawController, BasicController {
 
@@ -34,9 +35,18 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
+
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+  }
+
+  public void save(Writeable x) {
+    try {
+      fileWriter.insert(x);
+    } catch (InterruptedException e) {
+      System.err.println("fail to insert to queue");
+    }
   }
 
   @Override
@@ -66,6 +76,8 @@ public final class Controller implements RawController, BasicController {
 
       message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
       model.add(message);
+      save(message);
+
       LOG.info("Message added: %s", message.id);
 
       // Find and update the previous "last" message so that it's "next" value
@@ -108,6 +120,7 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
+      save(user);
 
       LOG.info(
           "newUser success (user.id=%s user.name=%s user.time=%s)",
@@ -137,6 +150,8 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
+      save(conversation);
+
       LOG.info("Conversation added: " + id);
     }
 

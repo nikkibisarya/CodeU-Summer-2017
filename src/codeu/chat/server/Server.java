@@ -47,6 +47,10 @@ import java.lang.Thread;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+
 public final class Server {
 
   private interface Command {
@@ -73,7 +77,79 @@ public final class Server {
   private Uuid lastSeen = Uuid.NULL;
 
   private fileWriter filewriter;
+  private BlockingQueue<Writeable> blockq;
 
+  private void loadState() {
+
+    File countFile = new File(fileWriter.CNT_FILE);
+
+    if(!countFile.exists())
+      return;
+    FileInputStream countfileIn = null;
+    int count = 0;
+    try {
+      countfileIn = new FileInputStream(countFile);
+      byte[] bytes = new byte[(int)(countFile.length())];
+      countfileIn.read(bytes);
+      String countString = new String(bytes);
+      count = Integer.parseInt(countString);
+    } catch (FileNotFoundException e) {
+      System.err.println("couldn't find count file");
+    } catch (SecurityException e) {
+      System.err.println("can't access read count file");
+    } catch (IOException e) {
+      System.err.println("can't read from count file");
+    }
+
+
+    File file = new File(fileWriter.TRANSACTION_FILE);
+
+    if(!file.exists())
+      return;
+    FileInputStream fin = null;
+    try {
+      fin = new FileInputStream(file);
+    } catch (FileNotFoundException e) {
+      System.err.println("couldn't find transaction log file");
+    } catch (SecurityException e) {
+      System.err.println("can't access read transaction log file");
+    }
+
+    // each count is type and data
+    String type;
+    Object value;
+    for(int i = 0; i < count; i++) {
+      try {
+        type = Serializers.STRING.read(fin);
+        switch(type) {
+          case Writeable.USER_STR:
+            value = User.SERIALIZER.read(fin);
+            User user = (User)value;
+            this.controller.newUser(user.id, user.name, user.creation);
+            break;
+          case Writeable.MESSAGE_STR:
+            value = Message.SERIALIZER.read(fin);
+            Message message = (Message)value;
+            this.controller.newMessage(message.id, message.author, message.next, message.content, message.creation);
+            break;
+          case Writeable.CONVERSATION_STR:
+            value = ConversationHeader.SERIALIZER.read(fin);
+            ConversationHeader conversationheader = (ConversationHeader)value;
+            this.controller.newConversation(conversationheader.id, conversationheader.title, conversationheader.owner, conversationheader.creation);
+            break;
+        }
+      } catch (IOException e) {
+        System.err.println("error reading transaction log");
+      }
+
+    }
+    try {
+      fin.close();
+    } catch (IOException e) {
+
+    }
+
+  }
 
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
@@ -82,8 +158,12 @@ public final class Server {
     this.controller = new Controller(id, model);
     this.relay = relay;
 
-    BlockingQueue<Writeable> blockq = new LinkedBlockingQueue<Writeable>();
-    this.filewriter = new fileWriter(blockq);
+    // new controller default to not save
+    loadState();
+
+    this.controller.setSave(true);
+    this.blockq = new LinkedBlockingQueue<Writeable>();
+    this.filewriter = new fileWriter(this.blockq);
     new Thread(this.filewriter).start();
 
     // New Message - A client wants to add a new message to the back end.

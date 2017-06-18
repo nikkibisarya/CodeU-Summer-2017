@@ -27,11 +27,16 @@ import java.lang.String;
 
 public final class Message extends Writeable {
 
-  public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
+  public String getType() {
+    return MESSAGE_STR;
+  }
 
-    public String getType() {
-      return "message";
-    }
+  @Override
+  public void write(OutputStream out, Object value) throws IOException {
+    SERIALIZER.write(out, (Message)value);
+  }
+
+  public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
 
     @Override
     public void write(OutputStream out, Message value) throws IOException {

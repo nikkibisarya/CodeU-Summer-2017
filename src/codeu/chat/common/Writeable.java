@@ -9,8 +9,11 @@ import codeu.chat.common.ConversationHeader;
 import java.lang.String;
 
 public class Writeable {
+  public static final String USER_STR = "user";
+  public static final String MESSAGE_STR = "message";
+  public static final String CONVERSATION_STR = "conversationheader";
   public void write(OutputStream out, Object value) throws IOException {
-
+    return;
   }
   public String getType() {
     return null;

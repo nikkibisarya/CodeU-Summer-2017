@@ -35,13 +35,22 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
+  private boolean save;
 
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+
+    this.save = false;
   }
 
-  public void save(Writeable x) {
+  public void setSave(boolean x) {
+    save = x;
+  }
+
+  private void save(Writeable x) {
+    if(!this.save)
+      return;
     try {
       fileWriter.insert(x);
     } catch (InterruptedException e) {
@@ -76,7 +85,10 @@ public final class Controller implements RawController, BasicController {
 
       message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
       model.add(message);
-      save(message);
+
+      // saving extra conversation field here, because needed when calling newMessage
+      Message allSave = new Message(id, conversation, Uuid.NULL, creationTime, author, body);
+      save(allSave);
 
       LOG.info("Message added: %s", message.id);
 

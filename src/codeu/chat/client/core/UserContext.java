@@ -53,4 +53,27 @@ public final class UserContext {
 
     return all;
   }
+
+  public boolean addConversationInterest(String title) {
+    return controller.addConversationInterest(title, user.id);
+  }
+
+  public boolean addUserInterest(String name) {
+    return controller.addUserInterest(name, user.id);
+  }
+
+  public boolean removeUserInterest(String name) {
+    return controller.removeUserInterest(name, user.id);
+  }
+  public boolean removeConversationInterest(String title) {
+    return controller.removeConversationInterest(title, user.id);
+  }
+
+  public Iterable<String> userStatusUpdate(String name) {
+    return view.userStatusUpdate(name, user.id);
+  }
+
+  public int conversationStatusUpdate(String title) {
+    return view.conversationStatusUpdate(title, user.id);
+  }
 }

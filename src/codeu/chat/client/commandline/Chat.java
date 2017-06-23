@@ -188,7 +188,7 @@ public final class Chat {
           if (user == null) {
             System.out.format("ERROR: Failed to sign in as '%s'\n", name);
           } else {
-            panels.push(createUserPanel(user));
+            panels.push(createUserPanel(context, user));
           }
         } else {
           System.out.println("ERROR: Missing <username>");
@@ -235,7 +235,7 @@ public final class Chat {
     return panel;
   }
 
-  private Panel createUserPanel(final UserContext user) {
+   private Panel createUserPanel(final Context context, final UserContext user) {
 
     final Panel panel = new Panel();
 
@@ -254,6 +254,18 @@ public final class Chat {
         System.out.println("    Add a new conversation with the given title and join it as the current user.");
         System.out.println("  c-join <title>");
         System.out.println("    Join the conversation as the current user.");
+        System.out.println("  u-int-add <name>");
+        System.out.println("    Add a user to the current user's interests.");
+        System.out.println("  u-int-remove <name>");
+        System.out.println("    Remove a user from the current user's interests.");
+        System.out.println("  c-int-add <title>");
+        System.out.println("    Add a conversation to the current user's interests.");
+        System.out.println("  c-int-remove <title>");
+        System.out.println("    Remove a conversation from the current user's interests.");
+        System.out.println("  status-update-u <name>");
+        System.out.println("    Call a status update on the specified user interest.");
+        System.out.println("  status-update-c <title>");
+        System.out.println("    Call a status update on the specified conversation interest.");
         System.out.println("  info");
         System.out.println("    Display all info for the current user");
         System.out.println("  back");
@@ -336,6 +348,238 @@ public final class Chat {
         return null;
       }
     });
+
+    // U-INT-ADD (add user interest)
+    //
+    // Add a command that will add a user to the current user's
+    // interests when the user enters "u-int-add" while on the user panel
+    //
+    panel.register("u-int-add", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        for(String token : args){
+          final String name = token;
+          if (name.length() > 0) {
+            final UserContext foundUser = findUser(name);
+            if (foundUser == null) {
+              System.out.format("ERROR: No user with name '%s'\n", name);
+            } else if (user.addUserInterest(name) == true) {
+                System.out.println("User \"" + name + "\" added to interests");
+            } else {
+                System.out.println("ERROR: User \"" + name + "\" already in interests");
+            }
+          } else {
+            System.out.println("ERROR: Missing <username>");
+          }
+        }
+      }
+
+      // Find the first user with the given name and return a user context
+      // for that user. If no user is found, the function will return null.
+      private UserContext findUser(String name) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.name.equals(name)) {
+            return user;
+          }
+        }
+        return null;
+      }
+    });
+
+    // C-INT-ADD (add conversation interest)
+    //
+    // A command that will add a conversation to the current user's
+    // interests map when the user enters "c-int-add"" while on the user panel
+    //
+    panel.register("c-int-add", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        for(String token : args){
+          final String title = token;
+          if (title.length() > 0) {
+            final ConversationContext conversation = find(title);
+            if (conversation == null) {
+              System.out.format("ERROR: No conversation with name '%s'\n", title);
+            } else if (user.addConversationInterest(title) == true) {
+                System.out.println("Conversation \"" + title + "\" is added to interests");
+            } else {
+                System.out.println("ERROR: Conversation \"" + title + "\" is already in interests");
+            }
+          } else {
+            System.out.println("ERROR: Missing <title>");
+          }
+        }
+      }
+
+      // Find the first conversation with the given name and return its context.
+      // If no conversation has the given name, this will return null.
+      private ConversationContext find(String title) {
+        for (final ConversationContext conversation : user.conversations()) {
+          if (title.equals(conversation.conversation.title)) {
+            return conversation;
+          }
+        }
+        return null;
+      }
+    });
+
+    // U-INT-REMOVE (Remove user interest)
+    //
+    // Add a command that will remove a user to the current user's
+    // interests when the user enters "u-int-remove" while on the user panel
+    //
+    panel.register("u-int-remove", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        for(String token : args){
+          final String name = token;
+          if (name.length() > 0) {
+            final UserContext foundUser = findUser(name);
+            if (foundUser == null) {
+              System.out.format("ERROR: No user with name '%s'\n", name);
+            } else if (user.removeUserInterest(name) == true) {
+                System.out.println("User \"" + name + "\" removed from interests");
+            } else {
+                System.out.println("ERROR: User \"" + name + "\" not in interests");
+            }
+          } else {
+            System.out.println("ERROR: Missing <username>");
+          }
+        }
+      }
+
+      // Find the first user with the given name and return a user context
+      // for that user. If no user is found, the function will return null.
+      private UserContext findUser(String name) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.name.equals(name)) {
+            return user;
+          }
+        }
+        return null;
+      }
+    });
+
+    // C-INT-REMOVE (remove conversation interest)
+    //
+    // Add a command that will remove a conversation to the current user's
+    // interests when the user enters "c-int-remove" while on the user panel
+    //
+    panel.register("c-int-remove", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        for(String token : args){
+          final String title = token;
+          if (title.length() > 0) {
+            final ConversationContext conversation = find(title);
+            if (conversation == null) {
+              System.out.format("ERROR: No conversation with name '%s'\n", title);
+            } else if (user.removeConversationInterest(title) == true) {
+                System.out.println("Conversation \"" + title + "\" is removed from interests");
+            } else {
+                System.out.println("ERROR: Conversation \"" + title + "\" is not in interests");
+            }
+          } else {
+            System.out.println("ERROR: Missing <title>");
+          }
+        }
+      }
+
+      // Find the first conversation with the given name and return its context.
+      // If no conversation has the given name, this will return null.
+      private ConversationContext find(String title) {
+        for (final ConversationContext conversation : user.conversations()) {
+          if (title.equals(conversation.conversation.title)) {
+            return conversation;
+          }
+        }
+        return null;
+      }
+    });
+
+    // STATUS-UPDATE-C (conversation status update)
+    //
+    // Add a command that will check for new messages in one of the user's conversation
+    // interests when the user enters "status-update-c" while on the user panel
+    //
+    panel.register("status-update-c", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        for(String token : args){
+          final String title = token;
+          if (title.length() > 0) {
+            final ConversationContext conversation = find(title);
+            if (conversation == null) {
+              System.out.format("ERROR: No conversation with name '%s'\n", title);
+            } else {
+              final int newMessages = user.conversationStatusUpdate(title);
+              if (newMessages == -1) {
+                System.out.println("ERROR: Conversation \"" + title + "\" is not in interests");
+              }
+              else if (newMessages == 0) {
+                System.out.println("No new messages in conversation \"" + title +"\"");
+              }
+              else {
+                System.out.println(newMessages + " new messages in conversation \"" + title + "\"");
+              }
+            }
+          } else {
+            System.out.println("ERROR: Missing <title>");
+          }
+        }
+      }
+
+      // Find the first conversation with the given name and return its context.
+      // If no conversation has the given name, this will return null.
+      private ConversationContext find(String title) {
+        for (final ConversationContext conversation : user.conversations()) {
+          if (title.equals(conversation.conversation.title)) {
+            return conversation;
+          }
+        }
+        return null;
+      }
+    });
+
+    // STATUS-UPDATE-U (user status update)
+    //
+    // Add a command that will add check new conversations created by and
+    //  contributed to by one of the current user's user interests when the
+    //  user enters "status-update-u" while on the user panel
+    //
+    panel.register("status-update-u", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        for(String token : args){
+          final String name = token;
+          if (name.length() > 0) {
+            final UserContext foundUser = findUser(name);
+            if (foundUser == null) {
+              System.out.format("ERROR: No user with name '%s'\n", name);
+            } else {
+              System.out.println("User \"" + name + "\" has contributed to:");
+              for(final String contribution : user.userStatusUpdate(name)) {
+                System.out.println(contribution);
+              }
+            }
+          } else {
+            System.out.println("ERROR: Missing <username>");
+          }
+        }
+      }
+
+      // Find the first user with the given name and return a user context
+      // for that user. If no user is found, the function will return null.
+      private UserContext findUser(String name) {
+        for (final UserContext user : context.allUsers()) {
+          if (user.user.name.equals(name)) {
+            return user;
+          }
+        }
+        return null;
+      }
+    });
+
 
     // INFO
     //
@@ -434,7 +678,7 @@ public final class Chat {
         System.out.println("Conversation Info:");
         System.out.format("  Title : %s\n", conversation.conversation.title);
         System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);
-        System.out.format("  Owner : %s\n", conversation.conversation.owner);
+        System.out.format("  Owner : %s\n" );
       }
     });
 

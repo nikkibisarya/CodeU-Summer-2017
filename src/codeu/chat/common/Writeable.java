@@ -18,7 +18,4 @@ public class Writeable {
   public String getType() {
     return null;
   }
-  // public User readUser(InputStream in) throws IOException;
-  // public Message readMessage(InputStream in) throws IOException;
-  // public ConversationHeader readConversationHeader(InputStream in) throws IOException;
 }

@@ -53,7 +53,6 @@ public class fileWriter implements Runnable {
         System.err.println("can't access write to transaction log file");
       }
 
-      //Logger.enableConsoleOutput();
 
       // type like: "user"
       File countFile = new File(CNT_FILE);
@@ -64,22 +63,16 @@ public class fileWriter implements Runnable {
 
         if(!exists) {
           countfileOut = new FileOutputStream(countFile, false);
-          //LOG.error("!exists");
           String str = "1";
           byte[] b = str.getBytes();
-          //LOG.error("count: " + b.length);
           countfileOut.write(str.getBytes());
           countfileOut.close();
         } else {
-          //LOG.error("ok exists");
           FileInputStream countfileIn = new FileInputStream(countFile);
           byte[] bytes = new byte[(int)(countFile.length())];
-          //LOG.error("ok size: " + bytes.length);
           countfileIn.read(bytes);
           String oldCountString = new String(bytes);
-          //LOG.error("oldcountstr: " +oldCountString);
           String newCountString = (Integer.parseInt(oldCountString) + 1) + "";
-          //LOG.error("newcountstr: " + newCountString);
           countfileOut = new FileOutputStream(countFile, false);
           countfileOut.write(newCountString.getBytes());
           countfileOut.close();
@@ -93,40 +86,13 @@ public class fileWriter implements Runnable {
 
       }
 
-
-      // FileInputStream countfileIn = null;
-      // try {
-      //   countfileIn = new FileInputStream(countFile);
-      // } catch (FileNotFoundException e) {
-      //   System.err.println("couldn't find count file");
-      // } catch (SecurityException e) {
-      //   System.err.println("can't access read count file");
-      // }
-
-
       try {
-        //LOG.error(x.getType());
-        //LOG.error(x instanceof User ? "yes" : "no");
-        //LOG.error(((User)x).getType());
         Serializers.STRING.write(fout, x.getType());
         x.write(fout, x);
         fout.close();
       } catch (IOException e) {
         System.err.println("couldn't write to transaction log file");
       }
-
-      // if(exists) {
-      //   try {
-      //       Integer oldCount = Serializers.INTEGER.read(countfileIn);
-      //       //LOG.error(oldCount.intValue() + "");
-      //       //oldCount = oldCount + 1;
-      //       Serializers.INTEGER.write(countfileOut, new Integer(oldCount.intValue() + 1));
-      //       countfileOut.close();
-      //       countfileIn.close();
-      //     } catch (IOException e) {
-      //       System.err.println("couldn't write or read to count file");
-      //   }
-      // }
 
    }
 }

@@ -27,10 +27,12 @@ import java.lang.String;
 
 public final class Message extends Writeable {
 
+  // get the type of this Writeable as a String
   public String getType() {
     return MESSAGE_STR;
   }
 
+  // write this Writeable as a Message
   @Override
   public void write(OutputStream out, Object value) throws IOException {
     SERIALIZER.write(out, (Message)value);

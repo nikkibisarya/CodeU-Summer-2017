@@ -83,6 +83,7 @@ public final class Server {
 
     File countFile = new File(fileWriter.CNT_FILE);
 
+    // check if can't load transaction count file
     if(!countFile.exists())
       return;
     FileInputStream countfileIn = null;
@@ -92,6 +93,8 @@ public final class Server {
       byte[] bytes = new byte[(int)(countFile.length())];
       countfileIn.read(bytes);
       String countString = new String(bytes);
+
+      // get the count from String read from CNT_FILE
       count = Integer.parseInt(countString);
     } catch (FileNotFoundException e) {
       System.err.println("couldn't find count file");
@@ -104,6 +107,7 @@ public final class Server {
 
     File file = new File(fileWriter.TRANSACTION_FILE);
 
+    // check if can't load transaction state from the log file
     if(!file.exists())
       return;
     FileInputStream fin = null;
@@ -115,26 +119,34 @@ public final class Server {
       System.err.println("can't access read transaction log file");
     }
 
-    // each count is type and data
+    // each count has a type first then data right after
     String type;
     Object value;
     for(int i = 0; i < count; i++) {
       try {
         type = Serializers.STRING.read(fin);
+
+        // check cases for user message or conversationheader types
         switch(type) {
           case Writeable.USER_STR:
             value = User.SERIALIZER.read(fin);
             User user = (User)value;
+
+            // add new user to restore state
             this.controller.newUser(user.id, user.name, user.creation);
             break;
           case Writeable.MESSAGE_STR:
             value = Message.SERIALIZER.read(fin);
             Message message = (Message)value;
+
+            // add new message to restore state
             this.controller.newMessage(message.id, message.author, message.next, message.content, message.creation);
             break;
           case Writeable.CONVERSATION_STR:
             value = ConversationHeader.SERIALIZER.read(fin);
             ConversationHeader conversationheader = (ConversationHeader)value;
+
+            // add new conversation to restore state
             this.controller.newConversation(conversationheader.id, conversationheader.title, conversationheader.owner, conversationheader.creation);
             break;
         }
@@ -159,11 +171,17 @@ public final class Server {
     this.relay = relay;
 
     // new controller default to not save
+    // load the state of the server on startup
     loadState();
 
+    // after loading, can start saving to log files when server starts
     this.controller.setSave(true);
+
+    // initialize the shared queue and fileWriter
     this.blockq = new LinkedBlockingQueue<Writeable>();
     this.filewriter = new fileWriter(this.blockq);
+
+    // start new thread for fileWriting from the queue to log files
     new Thread(this.filewriter).start();
 
     // New Message - A client wants to add a new message to the back end.

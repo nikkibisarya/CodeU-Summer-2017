@@ -8,6 +8,8 @@ import codeu.chat.common.Message;
 import codeu.chat.common.ConversationHeader;
 import java.lang.String;
 
+// Writeable is a class for Objects that can be written through an OutputStream
+// This is used for writing different Objects to the transaction log file
 public class Writeable {
   public static final String USER_STR = "user";
   public static final String MESSAGE_STR = "message";

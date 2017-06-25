@@ -27,11 +27,13 @@ import java.lang.String;
 
 public final class User extends Writeable {
 
+  // get the type of this Writeable as a String
   @Override
   public String getType() {
     return USER_STR;
   }
 
+  // write this Writeable as a User
   @Override
   public void write(OutputStream out, Object value) throws IOException {
     SERIALIZER.write(out, (User)value);
@@ -48,7 +50,7 @@ public final class User extends Writeable {
 
     }
 
-    //@Override
+    @Override
     public User read(InputStream in) throws IOException {
 
       return new User(

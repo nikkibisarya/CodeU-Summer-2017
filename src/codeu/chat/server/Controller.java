@@ -41,13 +41,16 @@ public final class Controller implements RawController, BasicController {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
 
+    // start off with not saving state in transaction log file
     this.save = false;
   }
 
+  // set whether to save state in transaction log file or not
   public void setSave(boolean x) {
     save = x;
   }
 
+  // save the state from this Writeable to transaction log file
   private void save(Writeable x) {
     if(!this.save)
       return;
@@ -88,6 +91,8 @@ public final class Controller implements RawController, BasicController {
 
       // saving extra conversation field here, because needed when calling newMessage
       Message allSave = new Message(id, conversation, Uuid.NULL, creationTime, author, body);
+
+      // save this current Message object to log file
       save(allSave);
 
       LOG.info("Message added: %s", message.id);
@@ -132,6 +137,8 @@ public final class Controller implements RawController, BasicController {
 
       user = new User(id, name, creationTime);
       model.add(user);
+
+      // save this current User object to log file
       save(user);
 
       LOG.info(
@@ -162,6 +169,8 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
+
+      // save this current Conversationheader object to log file
       save(conversation);
 
       LOG.info("Conversation added: " + id);

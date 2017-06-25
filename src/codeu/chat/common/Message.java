@@ -28,6 +28,7 @@ import java.lang.String;
 public final class Message implements Writeable {
 
   // get the type of this Writeable as a String
+  @Override
   public String getType() {
     return MESSAGE_STR;
   }

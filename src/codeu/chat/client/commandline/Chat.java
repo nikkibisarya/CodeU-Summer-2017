@@ -84,6 +84,26 @@ public final class Chat {
     System.out.println("ERROR: Unsupported command");
     return true;
   }
+    // Find the first conversation with the given name and return its context.
+    // If no conversation has the given name, this will return null.
+    private ConversationContext findConvo(final UserContext user, String title) {
+    for (final ConversationContext conversation : user.conversations()) {
+      if (title.equals(conversation.conversation.title)) {
+        return conversation;
+      }
+    }
+      return null;
+    }
+    // Find the first user with the given name and return a user context
+    // for that user. If no user is found, the function will return null.
+    private UserContext findUser(final Context context, String name) {
+    for (final UserContext user : context.allUsers()) {
+      if (user.user.name.equals(name)) {
+        return user;
+      }
+    }
+      return null;
+    }
 
   // CREATE ROOT PANEL
   //
@@ -184,7 +204,7 @@ public final class Chat {
         // this only takes first token of the name (surround with quotes for inputs with whitespaces)
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
-          final UserContext user = findUser(name);
+          final UserContext user = findUser(context,name);
           if (user == null) {
             System.out.format("ERROR: Failed to sign in as '%s'\n", name);
           } else {
@@ -194,20 +214,8 @@ public final class Chat {
           System.out.println("ERROR: Missing <username>");
         }
       }
-
-      // Find the first user with the given name and return a user context
-      // for that user. If no user is found, the function will return null.
-      private UserContext findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user;
-          }
-        }
-        return null;
-      }
       // Now that the panel has all its commands registered, return the panel
       // so that it can be used.
-
     });
 
     // INFO (Updated context)
@@ -326,7 +334,7 @@ public final class Chat {
         // this only takes first token of the conversation name (surround with quotes for inputs with whitespaces)
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
-          final ConversationContext conversation = find(name);
+          final ConversationContext conversation = findConvo(user,name);
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
@@ -335,17 +343,6 @@ public final class Chat {
         } else {
           System.out.println("ERROR: Missing <title>");
         }
-      }
-
-      // Find the first conversation with the given name and return its context.
-      // If no conversation has the given name, this will return null.
-      private ConversationContext find(String title) {
-        for (final ConversationContext conversation : user.conversations()) {
-          if (title.equals(conversation.conversation.title)) {
-            return conversation;
-          }
-        }
-        return null;
       }
     });
 
@@ -360,7 +357,7 @@ public final class Chat {
         for(String token : args){
           final String name = token;
           if (name.length() > 0) {
-            final UserContext foundUser = findUser(name);
+            final UserContext foundUser = findUser(context,name);
             if (foundUser == null) {
               System.out.format("ERROR: No user with name '%s'\n", name);
             } else if (user.addUserInterest(name) == true) {
@@ -372,17 +369,6 @@ public final class Chat {
             System.out.println("ERROR: Missing <username>");
           }
         }
-      }
-
-      // Find the first user with the given name and return a user context
-      // for that user. If no user is found, the function will return null.
-      private UserContext findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user;
-          }
-        }
-        return null;
       }
     });
 
@@ -397,7 +383,7 @@ public final class Chat {
         for(String token : args){
           final String title = token;
           if (title.length() > 0) {
-            final ConversationContext conversation = find(title);
+            final ConversationContext conversation = findConvo(user,title);
             if (conversation == null) {
               System.out.format("ERROR: No conversation with name '%s'\n", title);
             } else if (user.addConversationInterest(title) == true) {
@@ -409,17 +395,6 @@ public final class Chat {
             System.out.println("ERROR: Missing <title>");
           }
         }
-      }
-
-      // Find the first conversation with the given name and return its context.
-      // If no conversation has the given name, this will return null.
-      private ConversationContext find(String title) {
-        for (final ConversationContext conversation : user.conversations()) {
-          if (title.equals(conversation.conversation.title)) {
-            return conversation;
-          }
-        }
-        return null;
       }
     });
 
@@ -434,7 +409,7 @@ public final class Chat {
         for(String token : args){
           final String name = token;
           if (name.length() > 0) {
-            final UserContext foundUser = findUser(name);
+            final UserContext foundUser = findUser(context,name);
             if (foundUser == null) {
               System.out.format("ERROR: No user with name '%s'\n", name);
             } else if (user.removeUserInterest(name) == true) {
@@ -446,17 +421,6 @@ public final class Chat {
             System.out.println("ERROR: Missing <username>");
           }
         }
-      }
-
-      // Find the first user with the given name and return a user context
-      // for that user. If no user is found, the function will return null.
-      private UserContext findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user;
-          }
-        }
-        return null;
       }
     });
 
@@ -471,7 +435,7 @@ public final class Chat {
         for(String token : args){
           final String title = token;
           if (title.length() > 0) {
-            final ConversationContext conversation = find(title);
+            final ConversationContext conversation = findConvo(user,title);
             if (conversation == null) {
               System.out.format("ERROR: No conversation with name '%s'\n", title);
             } else if (user.removeConversationInterest(title) == true) {
@@ -483,17 +447,6 @@ public final class Chat {
             System.out.println("ERROR: Missing <title>");
           }
         }
-      }
-
-      // Find the first conversation with the given name and return its context.
-      // If no conversation has the given name, this will return null.
-      private ConversationContext find(String title) {
-        for (final ConversationContext conversation : user.conversations()) {
-          if (title.equals(conversation.conversation.title)) {
-            return conversation;
-          }
-        }
-        return null;
       }
     });
 
@@ -508,7 +461,7 @@ public final class Chat {
         for(String token : args){
           final String title = token;
           if (title.length() > 0) {
-            final ConversationContext conversation = find(title);
+            final ConversationContext conversation = findConvo(user,title);
             if (conversation == null) {
               System.out.format("ERROR: No conversation with name '%s'\n", title);
             } else {
@@ -528,17 +481,6 @@ public final class Chat {
           }
         }
       }
-
-      // Find the first conversation with the given name and return its context.
-      // If no conversation has the given name, this will return null.
-      private ConversationContext find(String title) {
-        for (final ConversationContext conversation : user.conversations()) {
-          if (title.equals(conversation.conversation.title)) {
-            return conversation;
-          }
-        }
-        return null;
-      }
     });
 
     // STATUS-UPDATE-U (user status update)
@@ -553,7 +495,7 @@ public final class Chat {
         for(String token : args){
           final String name = token;
           if (name.length() > 0) {
-            final UserContext foundUser = findUser(name);
+            final UserContext foundUser = findUser(context,name);
             if (foundUser == null) {
               System.out.format("ERROR: No user with name '%s'\n", name);
             } else {
@@ -566,17 +508,6 @@ public final class Chat {
             System.out.println("ERROR: Missing <username>");
           }
         }
-      }
-
-      // Find the first user with the given name and return a user context
-      // for that user. If no user is found, the function will return null.
-      private UserContext findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user;
-          }
-        }
-        return null;
       }
     });
 

@@ -128,8 +128,7 @@ final class Controller implements BasicController {
       } else {
         LOG.error("Response from server failed.");
       }
-    }
-      catch (Exception ex) {
+    } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
     }
@@ -153,8 +152,7 @@ final class Controller implements BasicController {
       } else {
         LOG.error("Response from server failed.");
       }
-    }
-      catch (Exception ex) {
+    } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
     }
@@ -178,8 +176,7 @@ final class Controller implements BasicController {
       } else {
         LOG.error("Response from server failed.");
       }
-    }
-      catch (Exception ex) {
+    } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
     }
@@ -203,8 +200,7 @@ final class Controller implements BasicController {
       } else {
         LOG.error("Response from server failed.");
       }
-    }
-      catch (Exception ex) {
+    } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
     }

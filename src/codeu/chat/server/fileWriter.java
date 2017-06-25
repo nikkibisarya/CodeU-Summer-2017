@@ -18,7 +18,6 @@ public class FileWriter implements Runnable {
 
     private BlockingQueue<Writeable> queue;
     public static final String TRANSACTION_FILE = "transaction.log";
-    public static final String CNT_FILE = "transaction.cnt";
 
     public FileWriter(BlockingQueue<Writeable> q) {
       queue = q;
@@ -56,49 +55,14 @@ public class FileWriter implements Runnable {
         System.err.println("can't access write to transaction log file");
       }
 
-
-      // type like: "user"
-      File countFile = new File(CNT_FILE);
-      boolean exists = countFile.exists();
-
-      FileOutputStream countfileOut = null;
-      try {
-
-        // handle if count file exists or not
-        if(!exists) {
-          countfileOut = new FileOutputStream(countFile, false);
-          String str = "1";
-          byte[] b = str.getBytes();
-
-          // write the String "1" to the file
-          countfileOut.write(str.getBytes());
-          countfileOut.close();
-        } else {
-          FileInputStream countfileIn = new FileInputStream(countFile);
-          byte[] bytes = new byte[(int)(countFile.length())];
-
-          // read the previous count from count file
-          countfileIn.read(bytes);
-          String oldCountString = new String(bytes);
-          String newCountString = (Integer.parseInt(oldCountString) + 1) + "";
-          countfileOut = new FileOutputStream(countFile, false);
-
-          // write the next count to the file
-          countfileOut.write(newCountString.getBytes());
-          countfileOut.close();
-          countfileIn.close();
-        }
-      } catch (FileNotFoundException e) {
-        System.err.println("couldn't find count log file");
-      } catch (SecurityException e) {
-        System.err.println("can't access write to count file");
-      } catch (IOException e) {
-
-      }
-
       try {
 
         // writing the saved state into transaction file
+        byte[] separator = new byte[1];
+        separator[0] = 0x00;
+
+        // write the separator to separate between saved objects
+        fout.write(separator);
         Serializers.STRING.write(fout, x.getType());
         x.write(fout, x);
         fout.close();

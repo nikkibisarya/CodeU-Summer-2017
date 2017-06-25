@@ -78,28 +78,28 @@ public final class Server {
 
   private void loadState() {
 
-    File countFile = new File(FileWriter.CNT_FILE);
-
-    // check if can't load transaction count file
-    if(!countFile.exists())
-      return;
-    FileInputStream countfileIn = null;
-    int count = 0;
-    try {
-      countfileIn = new FileInputStream(countFile);
-      byte[] bytes = new byte[(int)(countFile.length())];
-      countfileIn.read(bytes);
-      String countString = new String(bytes);
-
-      // get the count from String read from CNT_FILE
-      count = Integer.parseInt(countString);
-    } catch (FileNotFoundException e) {
-      System.err.println("couldn't find count file");
-    } catch (SecurityException e) {
-      System.err.println("can't access read count file");
-    } catch (IOException e) {
-      System.err.println("can't read from count file");
-    }
+    // File countFile = new File(FileWriter.CNT_FILE);
+    //
+    // // check if can't load transaction count file
+    // if(!countFile.exists())
+    //   return;
+    // FileInputStream countfileIn = null;
+    // int count = 0;
+    // try {
+    //   countfileIn = new FileInputStream(countFile);
+    //   byte[] bytes = new byte[(int)(countFile.length())];
+    //   countfileIn.read(bytes);
+    //   String countString = new String(bytes);
+    //
+    //   // get the count from String read from CNT_FILE
+    //   count = Integer.parseInt(countString);
+    // } catch (FileNotFoundException e) {
+    //   System.err.println("couldn't find count file");
+    // } catch (SecurityException e) {
+    //   System.err.println("can't access read count file");
+    // } catch (IOException e) {
+    //   System.err.println("can't read from count file");
+    // }
 
 
     File file = new File(FileWriter.TRANSACTION_FILE);
@@ -119,43 +119,46 @@ public final class Server {
     // each count has a type first then data right after
     String type;
     Object value;
-    for(int i = 0; i < count; i++) {
-      try {
-        type = Serializers.STRING.read(fin);
+    try {
 
-        // check cases for user message or conversationheader types
-        switch(type) {
-          case Writeable.USER_STR:
-            value = User.SERIALIZER.read(fin);
-            User user = (User)value;
+      // each object is in the format: 0x00 then type then data
+      while(fin.read() != -1) {
 
-            // add new user to restore state
-            this.controller.newUser(user.id, user.name, user.creation);
-            break;
-          case Writeable.MESSAGE_STR:
-            value = Message.SERIALIZER.read(fin);
-            Message message = (Message)value;
+          // read the type of the data
+          type = Serializers.STRING.read(fin);
 
-            // add new message to restore state
-            this.controller.newMessage(message.id, message.author, message.next, message.content, message.creation);
-            break;
-          case Writeable.CONVERSATION_STR:
-            value = ConversationHeader.SERIALIZER.read(fin);
-            ConversationHeader conversationheader = (ConversationHeader)value;
+          // check cases for user message or conversationheader types
+          switch(type) {
+            case Writeable.USER_STR:
+              value = User.SERIALIZER.read(fin);
+              User user = (User)value;
 
-            // add new conversation to restore state
-            this.controller.newConversation(conversationheader.id, conversationheader.title, conversationheader.owner, conversationheader.creation);
-            break;
-        }
-      } catch (IOException e) {
+              // add new user to restore state
+              this.controller.newUser(user.id, user.name, user.creation);
+              break;
+            case Writeable.MESSAGE_STR:
+              value = Message.SERIALIZER.read(fin);
+              Message message = (Message)value;
+
+              // add new message to restore state
+              this.controller.newMessage(message.id, message.author, message.next, message.content, message.creation);
+              break;
+            case Writeable.CONVERSATION_STR:
+              value = ConversationHeader.SERIALIZER.read(fin);
+              ConversationHeader conversationheader = (ConversationHeader)value;
+
+              // add new conversation to restore state
+              this.controller.newConversation(conversationheader.id, conversationheader.title, conversationheader.owner, conversationheader.creation);
+              break;
+            }
+      }
+    } catch (IOException e) {
         System.err.println("error reading transaction log");
       }
 
-    }
     try {
       fin.close();
     } catch (IOException e) {
-
     }
 
   }
@@ -177,9 +180,6 @@ public final class Server {
 
     // after loading, can start saving to log files when server starts
     this.controller.setSave(true);
-
-    // initialize the shared queue and FileWriter
-
 
     // start new thread for fileWriting from the queue to log files
     new Thread(filewriter).start();

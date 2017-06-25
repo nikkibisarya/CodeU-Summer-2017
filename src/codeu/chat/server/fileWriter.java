@@ -14,13 +14,13 @@ import java.io.FileNotFoundException;
 import codeu.chat.common.User;
 
 // class to store current queued transactions and write to log file
-public class fileWriter implements Runnable {
+public class FileWriter implements Runnable {
 
-    private static BlockingQueue<Writeable> queue;
+    private BlockingQueue<Writeable> queue;
     public static final String TRANSACTION_FILE = "transaction.log";
     public static final String CNT_FILE = "transaction.cnt";
 
-    public fileWriter(BlockingQueue<Writeable> q) {
+    public FileWriter(BlockingQueue<Writeable> q) {
       queue = q;
     }
 
@@ -37,7 +37,7 @@ public class fileWriter implements Runnable {
       }
     }
 
-    public static void insert(Writeable x) throws InterruptedException {
+    public void insert(Writeable x) throws InterruptedException {
 
       // adding to the common queue
       queue.put(x);

@@ -56,7 +56,7 @@ public final class Chat {
       args.add(token);
     }
 
-    // check for no input
+    // check for no input (i.e. no input given)
     if(args.size() == 0) {
       return true;
     }

@@ -25,7 +25,7 @@ import codeu.chat.util.Uuid;
 
 import java.lang.String;
 
-public final class ConversationHeader extends Writeable {
+public final class ConversationHeader implements Writeable {
 
   // get the type of this Writeable as a String
   public String getType() {

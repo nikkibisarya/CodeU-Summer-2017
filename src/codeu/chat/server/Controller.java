@@ -36,13 +36,22 @@ public final class Controller implements RawController, BasicController {
   private final Uuid.Generator uuidGenerator;
 
   private boolean save;
+  private FileWriter filewriter;
 
   public Controller(Uuid serverId, Model model) {
+    this.model = model;
+    this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+  }
+
+  public Controller(Uuid serverId, Model model, FileWriter filewriter) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
 
     // start off with not saving state in transaction log file
     this.save = false;
+
+    // store the FileWriter to user
+    this.filewriter = filewriter;
   }
 
   // set whether to save state in transaction log file or not
@@ -55,7 +64,7 @@ public final class Controller implements RawController, BasicController {
     if(!this.save)
       return;
     try {
-      fileWriter.insert(x);
+      filewriter.insert(x);
     } catch (InterruptedException e) {
       System.err.println("fail to insert to queue");
     }

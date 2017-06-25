@@ -25,7 +25,7 @@ import codeu.chat.util.Uuid;
 
 import java.lang.String;
 
-public final class User extends Writeable {
+public final class User implements Writeable {
 
   // get the type of this Writeable as a String
   @Override

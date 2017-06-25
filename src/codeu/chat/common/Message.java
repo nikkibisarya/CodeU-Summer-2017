@@ -25,7 +25,7 @@ import codeu.chat.util.Uuid;
 
 import java.lang.String;
 
-public final class Message extends Writeable {
+public final class Message implements Writeable {
 
   // get the type of this Writeable as a String
   public String getType() {

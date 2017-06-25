@@ -41,7 +41,7 @@ import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 
-import codeu.chat.server.fileWriter;
+import codeu.chat.server.FileWriter;
 import codeu.chat.common.Writeable;
 import java.lang.Thread;
 import java.util.concurrent.BlockingQueue;
@@ -76,12 +76,9 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  private fileWriter filewriter;
-  private BlockingQueue<Writeable> blockq;
-
   private void loadState() {
 
-    File countFile = new File(fileWriter.CNT_FILE);
+    File countFile = new File(FileWriter.CNT_FILE);
 
     // check if can't load transaction count file
     if(!countFile.exists())
@@ -105,7 +102,7 @@ public final class Server {
     }
 
 
-    File file = new File(fileWriter.TRANSACTION_FILE);
+    File file = new File(FileWriter.TRANSACTION_FILE);
 
     // check if can't load transaction state from the log file
     if(!file.exists())
@@ -167,7 +164,11 @@ public final class Server {
 
     this.id = id;
     this.secret = secret;
-    this.controller = new Controller(id, model);
+
+    BlockingQueue<Writeable> blockq = new LinkedBlockingQueue<Writeable>();
+    FileWriter filewriter = new FileWriter(blockq);
+
+    this.controller = new Controller(id, model, filewriter);
     this.relay = relay;
 
     // new controller default to not save
@@ -177,12 +178,11 @@ public final class Server {
     // after loading, can start saving to log files when server starts
     this.controller.setSave(true);
 
-    // initialize the shared queue and fileWriter
-    this.blockq = new LinkedBlockingQueue<Writeable>();
-    this.filewriter = new fileWriter(this.blockq);
+    // initialize the shared queue and FileWriter
+
 
     // start new thread for fileWriting from the queue to log files
-    new Thread(this.filewriter).start();
+    new Thread(filewriter).start();
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {

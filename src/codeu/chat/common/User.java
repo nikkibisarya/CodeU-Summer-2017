@@ -52,8 +52,8 @@ public final class User {
     }
   };
 
-  //public Collection<Uuid> UserSet = new HashSet<Uuid>(64);
-  //public Collection<Uuid> ConvoSet = new HashSet<Uuid>(64);
+  public Collection<Uuid> UserSet = new HashSet<Uuid>(64);
+  public Collection<Uuid> ConvoSet = new HashSet<Uuid>(64);
   public HashMap<Uuid, Time> UserUpdateMap = new HashMap<Uuid, Time>();
   public HashMap<Uuid, Time> ConvoUpdateMap = new HashMap<Uuid, Time>();
 

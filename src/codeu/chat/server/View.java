@@ -95,7 +95,7 @@ public final class View implements BasicView, SinglesView {
     final User foundUser = model.userByText().first(name);
     
     if(foundUser != null) {
-      if(foundOwner.UserUpdateMap.containsValue(foundUser.id)) {
+      if(foundOwner.UserSet.contains(foundUser.id)) {
         final Time lastUpdate = foundOwner.UserUpdateMap.get(foundUser.id);
 
       for(ConversationPayload conversationPayload : allConversations) {
@@ -144,7 +144,7 @@ public final class View implements BasicView, SinglesView {
     final Time lastUpdate = foundOwner.ConvoUpdateMap.get(foundConversation.id);
     
     if(foundConversation != null) {
-      if(foundOwner.ConvoUpdateMap.containsValue(foundConversation.id)) {
+      if(foundOwner.ConvoSet.contains(foundConversation.id)) {
           Message currentMessage = model.messageById().first(foundConversationPayload.firstMessage);
           while(currentMessage != null) {
             if(lastUpdate.compareTo(currentMessage.creation) < 0) {

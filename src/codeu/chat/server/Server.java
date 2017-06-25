@@ -78,30 +78,6 @@ public final class Server {
 
   private void loadState() {
 
-    // File countFile = new File(FileWriter.CNT_FILE);
-    //
-    // // check if can't load transaction count file
-    // if(!countFile.exists())
-    //   return;
-    // FileInputStream countfileIn = null;
-    // int count = 0;
-    // try {
-    //   countfileIn = new FileInputStream(countFile);
-    //   byte[] bytes = new byte[(int)(countFile.length())];
-    //   countfileIn.read(bytes);
-    //   String countString = new String(bytes);
-    //
-    //   // get the count from String read from CNT_FILE
-    //   count = Integer.parseInt(countString);
-    // } catch (FileNotFoundException e) {
-    //   System.err.println("couldn't find count file");
-    // } catch (SecurityException e) {
-    //   System.err.println("can't access read count file");
-    // } catch (IOException e) {
-    //   System.err.println("can't read from count file");
-    // }
-
-
     File file = new File(FileWriter.TRANSACTION_FILE);
 
     // check if can't load transaction state from the log file

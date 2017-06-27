@@ -204,7 +204,7 @@ public final class Chat {
         // this only takes first token of the name (surround with quotes for inputs with whitespaces)
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
-          final UserContext user = findUser(context,name);
+          final UserContext user = findUser(context, name);
           if (user == null) {
             System.out.format("ERROR: Failed to sign in as '%s'\n", name);
           } else {

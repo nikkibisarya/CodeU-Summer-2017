@@ -37,7 +37,6 @@ public class FileWriter implements Runnable {
     }
 
     public void insert(Writeable x) throws InterruptedException {
-
       // adding to the common queue
       queue.put(x);
     }

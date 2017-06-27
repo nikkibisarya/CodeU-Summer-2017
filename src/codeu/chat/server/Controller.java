@@ -15,6 +15,7 @@
 package codeu.chat.server;
 
 import java.util.Collection;
+import java.lang.NullPointerException;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -35,36 +36,33 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  private boolean save;
-  private FileWriter filewriter;
+  private FileWriter fileWriter;
+  private boolean loading;
 
-  public Controller(Uuid serverId, Model model) {
+  public Controller(Uuid serverId, Model model, FileWriter fileWriter) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-  }
-
-  public Controller(Uuid serverId, Model model, FileWriter filewriter) {
-    this.model = model;
-    this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-
-    // start off with not saving state in transaction log file
-    this.save = false;
 
     // store the FileWriter to user
-    this.filewriter = filewriter;
+    this.fileWriter = fileWriter;
+    this.loading = true;
+    startUp();
+    this.loading = false;
   }
 
-  // set whether to save state in transaction log file or not
-  public void setSave(boolean x) {
-    save = x;
+  public void startUp() {
+    FileLoader fileLoader = new FileLoader(this);
+    fileLoader.loadState();
+    new Thread(fileWriter).start();
   }
 
   // save the state from this Writeable to transaction log file
   private void save(Writeable x) {
-    if(!this.save)
+    if(fileWriter == null)
       return;
     try {
-      filewriter.insert(x);
+      if(!loading)
+        fileWriter.insert(x);
     } catch (InterruptedException e) {
       System.err.println("fail to insert to queue");
     }
@@ -99,7 +97,7 @@ public final class Controller implements RawController, BasicController {
       model.add(message);
 
       // saving extra conversation field here, because needed when calling newMessage
-      Message allSave = new Message(id, conversation, Uuid.NULL, creationTime, author, body);
+      Message allSave = new Message(id, Uuid.NULL, conversation, creationTime, author, body);
 
       // save this current Message object to log file
       save(allSave);

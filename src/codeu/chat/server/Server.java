@@ -76,89 +76,18 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  private void loadState() {
-
-    File file = new File(FileWriter.TRANSACTION_FILE);
-
-    // check if can't load transaction state from the log file
-    if(!file.exists())
-      return;
-    FileInputStream fin = null;
-    try {
-      fin = new FileInputStream(file);
-    } catch (FileNotFoundException e) {
-      System.err.println("couldn't find transaction log file");
-    } catch (SecurityException e) {
-      System.err.println("can't access read transaction log file");
-    }
-
-    // each count has a type first then data right after
-    String type;
-    Object value;
-    try {
-
-      // each object is in the format: 0x00 then type then data
-      while(fin.read() != -1) {
-
-          // read the type of the data
-          type = Serializers.STRING.read(fin);
-
-          // check cases for user message or conversationheader types
-          switch(type) {
-            case Writeable.USER_STR:
-              value = User.SERIALIZER.read(fin);
-              User user = (User)value;
-
-              // add new user to restore state
-              this.controller.newUser(user.id, user.name, user.creation);
-              break;
-            case Writeable.MESSAGE_STR:
-              value = Message.SERIALIZER.read(fin);
-              Message message = (Message)value;
-
-              // add new message to restore state
-              this.controller.newMessage(message.id, message.author, message.next, message.content, message.creation);
-              break;
-            case Writeable.CONVERSATION_STR:
-              value = ConversationHeader.SERIALIZER.read(fin);
-              ConversationHeader conversationheader = (ConversationHeader)value;
-
-              // add new conversation to restore state
-              this.controller.newConversation(conversationheader.id, conversationheader.title, conversationheader.owner, conversationheader.creation);
-              break;
-            }
-      }
-    } catch (IOException e) {
-        System.err.println("error reading transaction log");
-      }
-
-    try {
-      fin.close();
-    } catch (IOException e) {
-    }
-
-  }
-
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
     this.id = id;
     this.secret = secret;
 
     BlockingQueue<Writeable> blockq = new LinkedBlockingQueue<Writeable>();
-    FileWriter filewriter = new FileWriter(blockq);
+    FileWriter fileWriter = new FileWriter(blockq);
 
-    this.controller = new Controller(id, model, filewriter);
     this.relay = relay;
 
-    // new controller default to not save
-    // load the state of the server on startup
-    loadState();
-
-    // after loading, can start saving to log files when server starts
-    this.controller.setSave(true);
-
-    // start new thread for fileWriting from the queue to log files
-    new Thread(filewriter).start();
+    // constructs and starts up the controller loading and writing thread
+    this.controller = new Controller(id, model, fileWriter);
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {

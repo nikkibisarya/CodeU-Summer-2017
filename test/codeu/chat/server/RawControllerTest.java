@@ -37,7 +37,7 @@ public final class RawControllerTest {
   @Before
   public void doBefore() {
     model = new Model();
-    controller = new Controller(Uuid.NULL, model);
+    controller = new Controller(Uuid.NULL, model, null);
 
     userId = new Uuid(1);
     conversationId = new Uuid(2);

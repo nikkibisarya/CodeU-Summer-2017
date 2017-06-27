@@ -57,7 +57,7 @@ public final class Chat {
     }
 
     // check for no input (i.e. no input given)
-    if(args.size() == 0) {
+    if (args.size() == 0) {
       return true;
     }
 

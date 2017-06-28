@@ -62,7 +62,7 @@ public class FileLoader {
               Message message = (Message)value;
 
               // add new message to restore state
-              this.controller.newMessage(message.id, message.author, message.previous, message.content, message.creation);
+              this.controller.newMessage(message.id, message.author, message.conversationName, message.content, message.creation);
               break;
             case Writeable.CONVERSATION_STR:
               value = ConversationHeader.SERIALIZER.read(fin);

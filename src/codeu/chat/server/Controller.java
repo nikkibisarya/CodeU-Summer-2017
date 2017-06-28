@@ -93,14 +93,11 @@ public final class Controller implements RawController, BasicController {
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
+      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body, conversation);
       model.add(message);
 
-      // saving extra conversation field here, because needed when calling newMessage
-      Message allSave = new Message(id, Uuid.NULL, conversation, creationTime, author, body);
-
       // save this current Message object to log file
-      save(allSave);
+      save(message);
 
       LOG.info("Message added: %s", message.id);
 

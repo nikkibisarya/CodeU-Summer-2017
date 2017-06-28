@@ -50,7 +50,7 @@ public final class Message implements Writeable {
       Time.SERIALIZER.write(out, value.creation);
       Uuid.SERIALIZER.write(out, value.author);
       Serializers.STRING.write(out, value.content);
-
+      Uuid.SERIALIZER.write(out, value.conversationName);
     }
 
     @Override
@@ -62,7 +62,8 @@ public final class Message implements Writeable {
           Uuid.SERIALIZER.read(in),
           Time.SERIALIZER.read(in),
           Uuid.SERIALIZER.read(in),
-          Serializers.STRING.read(in)
+          Serializers.STRING.read(in),
+          Uuid.SERIALIZER.read(in)
       );
 
     }
@@ -73,9 +74,10 @@ public final class Message implements Writeable {
   public final Time creation;
   public final Uuid author;
   public final String content;
-  public Uuid next;
+  public final Uuid next;
+  public final Uuid conversationName;
 
-  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content) {
+  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content, Uuid conversationName) {
 
     this.id = id;
     this.next = next;
@@ -83,6 +85,7 @@ public final class Message implements Writeable {
     this.creation = creation;
     this.author = author;
     this.content = content;
+    this.conversationName = conversationName;
 
   }
 }

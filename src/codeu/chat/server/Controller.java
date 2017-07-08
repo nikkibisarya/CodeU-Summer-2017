@@ -153,7 +153,6 @@ public final class Controller implements RawController, BasicController {
       LOG.info("ERROR: User already in interests.");
       return false;
     } else {
-      //foundOwner.UserSet.add(foundUser.id);
       foundOwner.UserUpdateMap.put(foundUser.id, Time.now());
       LOG.info("User Interest added: " + foundUser.id);
       return true;

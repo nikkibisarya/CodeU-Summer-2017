@@ -56,7 +56,7 @@ public interface BasicView {
   //   Return all messages whose id is found in the given collection.
   Collection<Message> getMessages(Collection<Uuid> ids);
 
-    // USER STATUS UPDATE
+  // USER STATUS UPDATE
   //
   //   Return the conversations created by and contributed to by the specified user.
   Collection<String> userStatusUpdate(String name, Uuid owner);

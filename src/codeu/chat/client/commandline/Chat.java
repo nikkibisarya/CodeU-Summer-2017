@@ -334,7 +334,7 @@ public final class Chat {
         // this only takes first token of the conversation name (surround with quotes for inputs with whitespaces)
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
-          final ConversationContext conversation = findConvo(user,name);
+          final ConversationContext conversation = findConvo(user, name);
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
@@ -357,7 +357,7 @@ public final class Chat {
         for(String token : args){
           final String name = token;
           if (name.length() > 0) {
-            final UserContext foundUser = findUser(context,name);
+            final UserContext foundUser = findUser(context, name);
             if (foundUser == null) {
               System.out.format("ERROR: No user with name '%s'\n", name);
             } else if (user.addUserInterest(name) == true) {
@@ -383,7 +383,7 @@ public final class Chat {
         for(String token : args){
           final String title = token;
           if (title.length() > 0) {
-            final ConversationContext conversation = findConvo(user,title);
+            final ConversationContext conversation = findConvo(user, title);
             if (conversation == null) {
               System.out.format("ERROR: No conversation with name '%s'\n", title);
             } else if (user.addConversationInterest(title) == true) {
@@ -409,7 +409,7 @@ public final class Chat {
         for(String token : args){
           final String name = token;
           if (name.length() > 0) {
-            final UserContext foundUser = findUser(context,name);
+            final UserContext foundUser = findUser(context, name);
             if (foundUser == null) {
               System.out.format("ERROR: No user with name '%s'\n", name);
             } else if (user.removeUserInterest(name) == true) {
@@ -435,7 +435,7 @@ public final class Chat {
         for(String token : args){
           final String title = token;
           if (title.length() > 0) {
-            final ConversationContext conversation = findConvo(user,title);
+            final ConversationContext conversation = findConvo(user, title);
             if (conversation == null) {
               System.out.format("ERROR: No conversation with name '%s'\n", title);
             } else if (user.removeConversationInterest(title) == true) {
@@ -461,7 +461,7 @@ public final class Chat {
         for(String token : args){
           final String title = token;
           if (title.length() > 0) {
-            final ConversationContext conversation = findConvo(user,title);
+            final ConversationContext conversation = findConvo(user, title);
             if (conversation == null) {
               System.out.format("ERROR: No conversation with name '%s'\n", title);
             } else {
@@ -495,7 +495,7 @@ public final class Chat {
         for(String token : args){
           final String name = token;
           if (name.length() > 0) {
-            final UserContext foundUser = findUser(context,name);
+            final UserContext foundUser = findUser(context, name);
             if (foundUser == null) {
               System.out.format("ERROR: No user with name '%s'\n", name);
             } else {

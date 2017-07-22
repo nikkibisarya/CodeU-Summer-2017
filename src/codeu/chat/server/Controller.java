@@ -15,6 +15,7 @@
 package codeu.chat.server;
 
 import java.util.Collection;
+import java.lang.NullPointerException;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -26,6 +27,7 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.Writeable;
 
 public final class Controller implements RawController, BasicController {
 
@@ -34,9 +36,36 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  public Controller(Uuid serverId, Model model) {
+  private FileWriter fileWriter;
+  private boolean loading;
+
+  public Controller(Uuid serverId, Model model, FileWriter fileWriter) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+
+    // store the FileWriter to user
+    this.fileWriter = fileWriter;
+    this.loading = true;
+    startUp();
+    this.loading = false;
+  }
+
+  public void startUp() {
+    FileLoader fileLoader = new FileLoader(this);
+    fileLoader.loadState();
+    new Thread(fileWriter).start();
+  }
+
+  // save the state from this Writeable to transaction log file
+  private void save(Writeable x) {
+    if(fileWriter == null)
+      return;
+    try {
+      if(!loading)
+        fileWriter.insert(x);
+    } catch (InterruptedException e) {
+      System.err.println("fail to insert to queue");
+    }
   }
 
   @Override
@@ -64,8 +93,12 @@ public final class Controller implements RawController, BasicController {
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
+      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body, conversation);
       model.add(message);
+
+      // save this current Message object to log file
+      save(message);
+
       LOG.info("Message added: %s", message.id);
 
       // Find and update the previous "last" message so that it's "next" value
@@ -109,6 +142,9 @@ public final class Controller implements RawController, BasicController {
       user = new User(id, name, creationTime);
       model.add(user);
 
+      // save this current User object to log file
+      save(user);
+
       LOG.info(
           "newUser success (user.id=%s user.name=%s user.time=%s)",
           id,
@@ -137,6 +173,10 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
+
+      // save this current Conversationheader object to log file
+      save(conversation);
+
       LOG.info("Conversation added: " + id);
     }
 

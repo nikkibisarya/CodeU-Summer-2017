@@ -55,6 +55,12 @@ public final class Chat {
     for (String token = tokenizer.next(); token != null; token = tokenizer.next()) {
       args.add(token);
     }
+
+    // check for no input (i.e. no input given)
+    if (args.size() == 0) {
+      return true;
+    }
+
     final String command = args.get(0);
     args.remove(0);
 

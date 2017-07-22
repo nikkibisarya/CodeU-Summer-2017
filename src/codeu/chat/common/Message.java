@@ -23,7 +23,21 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class Message {
+import java.lang.String;
+
+public final class Message implements Writeable {
+
+  // get the type of this Writeable as a String
+  @Override
+  public String getType() {
+    return MESSAGE_STR;
+  }
+
+  // write this Writeable as a Message
+  @Override
+  public void write(OutputStream out, Object value) throws IOException {
+    SERIALIZER.write(out, (Message)value);
+  }
 
   public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
 
@@ -36,7 +50,7 @@ public final class Message {
       Time.SERIALIZER.write(out, value.creation);
       Uuid.SERIALIZER.write(out, value.author);
       Serializers.STRING.write(out, value.content);
-
+      Uuid.SERIALIZER.write(out, value.conversationName);
     }
 
     @Override
@@ -48,7 +62,8 @@ public final class Message {
           Uuid.SERIALIZER.read(in),
           Time.SERIALIZER.read(in),
           Uuid.SERIALIZER.read(in),
-          Serializers.STRING.read(in)
+          Serializers.STRING.read(in),
+          Uuid.SERIALIZER.read(in)
       );
 
     }
@@ -60,8 +75,9 @@ public final class Message {
   public final Uuid author;
   public final String content;
   public Uuid next;
+  public final Uuid conversationName;
 
-  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content) {
+  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content, Uuid conversationName) {
 
     this.id = id;
     this.next = next;
@@ -69,6 +85,7 @@ public final class Message {
     this.creation = creation;
     this.author = author;
     this.content = content;
+    this.conversationName = conversationName;
 
   }
 }

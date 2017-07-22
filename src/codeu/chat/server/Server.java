@@ -41,6 +41,16 @@ import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 
+import codeu.chat.server.FileWriter;
+import codeu.chat.common.Writeable;
+import java.lang.Thread;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+
 public final class Server {
 
   private interface Command {
@@ -71,8 +81,14 @@ public final class Server {
 
     this.id = id;
     this.secret = secret;
-    this.controller = new Controller(id, model);
+
+    BlockingQueue<Writeable> blockq = new LinkedBlockingQueue<Writeable>();
+    FileWriter fileWriter = new FileWriter(blockq);
+
     this.relay = relay;
+
+    // constructs and starts up the controller loading and writing thread
+    this.controller = new Controller(id, model, fileWriter);
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command(){

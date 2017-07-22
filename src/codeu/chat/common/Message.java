@@ -74,7 +74,7 @@ public final class Message implements Writeable {
   public final Time creation;
   public final Uuid author;
   public final String content;
-  public final Uuid next;
+  public Uuid next;
   public final Uuid conversationName;
 
   public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content, Uuid conversationName) {

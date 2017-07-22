@@ -207,4 +207,87 @@ final class Controller implements BasicController {
 
     return response;
   }
+
+  public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_PRIVILEGE_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), requester);
+      Uuid.SERIALIZER.write(connection.out(), target);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      UserType.SERIALIZER.write(connection.out(), newAccess);
+
+      int reply = Serializers.INTEGER.read(connection.in());
+
+      if (reply == NetworkCode.SUFFICIENT_PRIVILEGES_RESPONSE) {
+        LOG.info("Changed user privilege");
+        return true;
+      } else if (reply == NetworkCode.INSUFFICIENT_PRIVILEGES_RESPONSE) {
+        LOG.error("Insufficient privilege to complete action");
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return false;
+  }
+
+
+  public String addUser(Uuid userId, Uuid addUserId, Uuid
+      convoId, UserType memberBit){
+
+    String message = "";
+
+    try(final Connection connection = this.source.connect()){
+      Serializers.INTEGER.write(connection.out(), NetworkCode.ADD_USER_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), addUserId);
+      Uuid.SERIALIZER.write(connection.out(), convoId);
+      UserType.SERIALIZER.write(connection.out(), memberBit); 
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.ADD_USER_RESPONSE) {
+        message = Serializers.STRING.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return message;
+  }
+
+  public String removeUser(Uuid userId, Uuid removeUserId, Uuid convoId){
+    String message = "";
+    try(final Connection connection = this.source.connect()){
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.REMOVE_USER_REQUEST); 
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), removeUserId);
+      Uuid.SERIALIZER.write(connection.out(), convoId);
+
+      if(Serializers.INTEGER.read(connection.in()) ==
+          NetworkCode.REMOVE_USER_RESPONSE){
+        message = Serializers.STRING.read(connection.in());
+      }
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    } 
+    return message;
+  }
+  
+  @Override
+  public HashMap<Uuid, UserType> getConversationPermission(Uuid id) {
+    HashMap<Uuid, UserType> hMap = new HashMap<Uuid, UserType>();
+	try(final Connection connection = this.source.connect()){
+	  Serializers.INTEGER.write(connection.out(), NetworkCode.USER_LIST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), id);
+	  hMap = Serializers.HashMap(Uuid.SERIALIZER, UserType.SERIALIZER).read(connection.in());
+	}catch(Exception ex){
+	  LOG.error(ex, "Exception during call on server.");
+	}
+	return hMap;
+} 
+
 }

@@ -88,4 +88,24 @@ public final class ConversationContext {
     final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
   }
+
+  public boolean changeAccess(Uuid target, UserType accessType) {
+    return controller.changeAccess(user.id, target, conversation.id, accessType);
+  }
+
+  public String addUser(Uuid target, UserType memberBit){ 
+    return controller.addUser(user.id, target, conversation.id, memberBit);
+  }
+
+  public String removeUser(Uuid target){
+    return controller.removeUser(user.id, target, conversation.id);
+  }
+  
+  public HashMap<Uuid, UserType> getConversationPermission() {
+	return controller.getConversationPermission(conversation.id);
+  }
+  
+  public Uuid getUser() {
+	return user.id;
+  }
 }

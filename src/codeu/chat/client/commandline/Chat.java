@@ -531,7 +531,7 @@ public final class Chat {
     return panel;
   }
 
-  private Panel createConversationPanel(final ConversationContext conversation) {
+    private Panel createConversationPanel(final ConversationContext conversation) {
 
     final Panel panel = new Panel();
 
@@ -541,21 +541,29 @@ public final class Chat {
     // when the user enters "help" while on the conversation panel.
     //
     panel.register("help", new Panel.Command() {
-      @Override
-      public void invoke(List<String> args) {
-        System.out.println("USER MODE");
-        System.out.println("  m-list");
-        System.out.println("    List all messages in the current conversation.");
-        System.out.println("  m-add <message>");
-        System.out.println("    Add a new message to the current conversation as the current user.");
-        System.out.println("  info");
-        System.out.println("    Display all info about the current conversation.");
-        System.out.println("  back");
-        System.out.println("    Go back to USER MODE.");
-        System.out.println("  exit");
-        System.out.println("    Exit the program.");
-      }
-    });
+          @Override
+          public void invoke(List<String> args) {
+            System.out.println("USER MODE");
+            System.out.println("m-list");
+            System.out.println("List all messages in the current conversation.");
+            System.out.println("m-add <message>");
+            System.out.println("Add a new message to the current conversation as " + "the current user."); 
+            System.out.println("a-add <user> <M for member or O for owner> ");
+            System.out.println("Add a user to the current conversation and assign their membership.");
+            System.out.println("a-remove <user>");
+            System.out.println("Remove a user from the current conversation.");
+            System.out.println("mod-access <user> <accessType>");
+            System.out.println("Change permissions of user. <userType> is O for owner, M for member, and R for remove");
+            System.out.println("a-list");
+            System.out.println("list all users and their access levels");
+            System.out.println("info");
+            System.out.println("Display all info about the current conversation.");
+            System.out.println("back");
+            System.out.println("Go back to USER MODE.");
+            System.out.println("exit");
+            System.out.println("Exit the program.");
+          }
+        });
 
     // M-LIST (list messages)
     //
@@ -563,40 +571,47 @@ public final class Chat {
     // user enters "m-list" while on the conversation panel.
     //
     panel.register("m-list", new Panel.Command() {
-      @Override
-      public void invoke(List<String> args) {
-        System.out.println("--- start of conversation ---");
-        for (MessageContext message = conversation.firstMessage();
-                            message != null;
-                            message = message.next()) {
-          System.out.println();
-          System.out.format("USER : %s\n", message.message.author);
-          System.out.format("SENT : %s\n", message.message.creation);
-          System.out.println();
-          System.out.println(message.message.content);
-          System.out.println();
-        }
-        System.out.println("---  end of conversation  ---");
-      }
-    });
-
+          @Override
+          public void invoke(List<String> args) {
+            if(hasAccess(conversation.getUser(), conversation)) {
+            	System.out.println("--- start of conversation ---");
+            	for (MessageContext message = conversation.firstMessage();
+            			message != null;
+            			message = message.next()) {
+            		System.out.println();
+            		System.out.format("USER : %s\n", message.message.author);
+            		System.out.format("SENT : %s\n", message.message.creation);
+            		System.out.println();
+            		System.out.println(message.message.content);
+            		System.out.println();
+            	}
+            	System.out.println("---  end of conversation  ---");
+              } else {
+            	  System.out.println("ERROR: you no longer have access to this conversation");
+              }
+          }
+        });
     // M-ADD (add message)
     //
     // Add a command to add a new message to the current conversation when the
     // user enters "m-add" while on the conversation panel.
     //
     panel.register("m-add", new Panel.Command() {
-      @Override
-      public void invoke(List<String> args) {
-        // this only takes first token of the msg (surround with quotes for inputs with whitespaces)
-        final String message = args.size() > 0 ? args.get(0).trim() : "";
-        if (message.length() > 0) {
-          conversation.add(message);
-        } else {
-          System.out.println("ERROR: Messages must contain text");
-        }
-      }
-    });
+          @Override
+          public void invoke(List<String> args) {
+        	String message = args.size() > 0 ? args.get(0) : "";
+            for(int i = 1; i < args.size(); i++) {
+              message += " " + args.get(i);
+            }
+            if (message.length() < 0) {
+              System.out.println("ERROR: Messages must contain text");
+            } if(hasAccess(conversation.getUser(),conversation))
+              conversation.add(message);
+            else {
+              System.out.println("ERROR: you no longer have access to this conversation");
+            }
+          }
+        });
 
     // INFO
     //
@@ -604,13 +619,135 @@ public final class Chat {
     // enters "info" while on the conversation panel.
     //
     panel.register("info", new Panel.Command() {
-      @Override
-      public void invoke(List<String> args) {
-        System.out.println("Conversation Info:");
-        System.out.format("  Title : %s\n", conversation.conversation.title);
-        System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);
-        System.out.format("  Owner : %s\n" );
-      }
+          @Override
+          public void invoke(List<String> args) {
+            System.out.println("Conversation Info:");
+            System.out.format("  Title : %s\n", conversation.conversation.title);
+            System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);
+            System.out.format("  Owner : %s\n", conversation.conversation.creator);
+          }
+        });
+
+    // MOD-ACCESS
+    //
+    // Add a command to change permissions of user. <userType> is O for owner, 
+    // M for member, and R for remove
+    panel.register("mod-access", new Panel.Command() {
+          @Override
+          public void invoke(List<String> args) {
+            if (args.size() >= 2) {
+              User targetUser = findUser(args.get(0).trim(), context).user;
+              String accessType = args.get(1).trim();
+              UserType access = null;
+              switch (accessType) {
+                case "M":
+                  access = UserType.MEMBER;
+                  break;
+                case "O":
+                  access = UserType.OWNER;
+                  break;
+                case "R":
+                  access = UserType.NOTSET;
+                  break;
+                default:
+                  System.out.println("ERROR: Please provide valid access type");
+                  return;
+              }
+
+              if (targetUser == null) {
+                System.out.println("ERROR: Could not find user");
+                return;
+              }
+
+              if (conversation.changeAccess(targetUser.id, access)) {
+                System.out.println("Access was modified successfully");
+              } else {
+                System.out.println(
+                    "ERROR: Couldn't modify target's access. Check your privileges and try again");
+              }
+            } else {
+              System.out.println("ERROR: Please provide the right number of arguments");
+            }
+          }
+        });
+
+    // A-ADD
+    //
+    // Adds a user to current conversation
+    //
+    panel.register("a-add", new Panel.Command() {
+          @Override
+          public void invoke(List<String> args) {
+            final int argSize = args.size();
+            if (argSize == 2 || argSize == 1) {
+              final UserContext addUser = findUser(args.get(0), context);
+              final String arg2 = args.size() == 2 ? args.get(1).trim() : "";
+              UserType memberBit = UserType.NOTSET;
+
+              if (addUser != null) {  
+                if(argSize == 2){ 
+                  switch(arg2){
+                    case "M":
+                      memberBit = UserType.MEMBER;
+                      break;
+                    case "O":
+                      memberBit = UserType.OWNER;
+                      break;
+                    default:
+                      System.out.print("ERROR: Invalid access type");
+                  } 
+                }
+                String message = conversation.addUser(addUser.user.id, memberBit);
+                System.out.print(message);
+              } else {
+                System.out.print("ERROR: User does not exist");
+              }
+            } else {
+              System.out.print("ERROR: Wrong format");
+            }
+            System.out.println();
+          }
+          
+    });
+
+    // A-REMOVE
+    //
+    // Removes a user to current conversation
+    //
+    panel.register("a-remove", new Panel.Command(){
+        @Override
+        public void invoke(List<String> args){
+          if(args.size() == 1){
+            final UserContext removeUser = findUser(args.get(0), context);
+            if(removeUser != null){
+              String message = conversation.removeUser(removeUser.user.id);
+              System.out.print(message);
+            }else{
+              System.out.print("ERROR: User does not exist");
+            }
+          }else{
+            System.out.print("ERROR: Wrong format");
+          }
+          System.out.println();
+        }
+    });
+    
+    // A-LIST
+    //
+    // List all users and their access level in a conversation
+    panel.register("a-list", new Panel.Command() {
+        @Override
+        public void invoke(List<String> args) {
+        HashMap<Uuid, UserType> map = conversation.getConversationPermission();
+          Set<Uuid> uuids = map.keySet();
+          Iterator<Uuid> iter = uuids.iterator();
+          while (iter.hasNext()) {
+            Uuid id = iter.next();
+            User user = userById(id, context);
+            System.out.format("USER %s (UUID:%s)\n", user.name, user.id);
+            System.out.println("Permission: " + map.get(id));
+          }
+        }
     });
 
     // Now that the panel has all its commands registered, return the panel

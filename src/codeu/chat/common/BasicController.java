@@ -86,4 +86,32 @@ public interface BasicController {
   // the change took place, with "true" meaning that the change occured
   // and "false" meaning that the change did not occur.
   boolean removeConversationInterest(String title, Uuid owner);
+
+  // CHANGE ACCESS
+  //
+  // Change the access of a target user in a given conversation. The requester must have both higher
+  // permission than the target user as well as the newAccess. The function will return true iff the
+  // function successfully changed access to the target user. If access could not be changed for any
+  // reason, the function will return false.
+  boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess);
+  
+  // GET CONVERSATION PERMISSION
+  //
+  // Returns the list of users in a conversation with their level of access. 
+  HashMap<Uuid, UserType> getConversationPermission(Uuid id);
+
+  // ADD USER
+  //
+  // Add a user with access type to the current conversation. 
+  // The requester must be a creator or owner in order to have the permission 
+  // to add a user. If the access type is not specified, the default access 
+  // type will be assigned to the added user.
+  String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
+
+  // REMOVE USER
+  //
+  // Removes specified user from specified conversation
+  // if the user performing the action has a higher privileges 
+  String removeUser(Uuid id, Uuid target, Uuid id2);
+  
 }

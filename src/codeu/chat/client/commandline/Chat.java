@@ -324,6 +324,7 @@ public final class Chat {
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
+            user.joinConversation(conversation);
             panels.push(createConversationPanel(conversation));
           }
         } else {
@@ -381,6 +382,8 @@ public final class Chat {
         System.out.println("    Add a new message to the current conversation as the current user.");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
+        System.out.println("  get-access");
+        System.out.println("    Get access mode of current user.");
         System.out.println("  back");
         System.out.println("    Go back to USER MODE.");
         System.out.println("  exit");
@@ -441,6 +444,13 @@ public final class Chat {
         System.out.format("  Title : %s\n", conversation.conversation.title);
         System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);
         System.out.format("  Owner : %s\n", conversation.conversation.owner);
+      }
+    });
+
+    panel.register("get-access", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        System.out.println("Current user has access mode: " + conversation.getAccess());
       }
     });
 

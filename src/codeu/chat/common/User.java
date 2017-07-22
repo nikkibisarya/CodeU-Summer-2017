@@ -24,6 +24,8 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
 import java.lang.String;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class User implements Writeable {
 
@@ -58,13 +60,29 @@ public final class User implements Writeable {
           Serializers.STRING.read(in),
           Time.SERIALIZER.read(in)
       );
-
     }
   };
+
+  public void add(Uuid conversation, Access access) {
+    if (!map.containsKey(conversation)) {
+      map.put(conversation, access);
+    }
+  }
+
+  public boolean containsConversation(Uuid conversation) {
+    return map.containsKey(conversation);
+  }
+
+  public Access get(Uuid conversation) {
+    return map.get(conversation);
+  }
 
   public final Uuid id;
   public final String name;
   public final Time creation;
+
+  // map from conversation id to Access
+  private Map<Uuid, Access> map;
 
   public User(Uuid id, String name, Time creation) {
 
@@ -72,5 +90,6 @@ public final class User implements Writeable {
     this.name = name;
     this.creation = creation;
 
+    this.map = new HashMap<>();
   }
 }

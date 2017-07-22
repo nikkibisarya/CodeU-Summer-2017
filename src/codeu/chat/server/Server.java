@@ -203,6 +203,29 @@ public final class Server {
       }
      });
 
+     this.commands.put(NetworkCode.JOIN_CONVERSATION_REQUEST, new Command() {
+       @Override
+       public void onMessage(InputStream in, OutputStream out) throws IOException {
+         final Uuid conversation = Uuid.SERIALIZER.read(in);
+         final Uuid user = Uuid.SERIALIZER.read(in);
+         controller.joinConversation(conversation, user);
+
+         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
+       }
+     });
+
+     this.commands.put(NetworkCode.GET_ACCESS_REQUEST, new Command() {
+       @Override
+       public void onMessage(InputStream in, OutputStream out) throws IOException {
+         final Uuid conversation = Uuid.SERIALIZER.read(in);
+         final Uuid user = Uuid.SERIALIZER.read(in);
+
+         final String access = controller.getAccess(conversation, user);
+         Serializers.INTEGER.write(out, NetworkCode.GET_ACCESS_RESPONSE);
+         Serializers.nullable(Serializers.STRING).write(out, access);
+      }
+     });
+
 
     this.timeline.scheduleNow(new Runnable() {
       @Override

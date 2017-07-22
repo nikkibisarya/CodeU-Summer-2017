@@ -18,7 +18,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.Thread;
 
-import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
@@ -28,8 +27,9 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
+import codeu.chat.common.ClientController;
 
-final class Controller implements BasicController {
+final class Controller implements ClientController {
 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
@@ -37,6 +37,46 @@ final class Controller implements BasicController {
 
   public Controller(ConnectionSource source) {
     this.source = source;
+  }
+
+  public String getAccess(Uuid conversation, Uuid user) {
+
+    String response = null;
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ACCESS_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      Uuid.SERIALIZER.write(connection.out(), user);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ACCESS_RESPONSE) {
+        response = Serializers.nullable(Serializers.STRING).read(connection.in());
+        LOG.info("Got access success");
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return response;
+  }
+
+  public void joinConversation(Uuid conversation, Uuid user) {
+
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.JOIN_CONVERSATION_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      Uuid.SERIALIZER.write(connection.out(), user);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.JOIN_CONVERSATION_RESPONSE) {
+        System.out.println("User joined success");
+        LOG.info("User joined success");
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
   }
 
   @Override

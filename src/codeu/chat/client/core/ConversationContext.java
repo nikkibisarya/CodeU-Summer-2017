@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import codeu.chat.common.BasicController;
+import codeu.chat.common.ClientController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -32,17 +32,21 @@ public final class ConversationContext {
   public final ConversationHeader conversation;
 
   private final BasicView view;
-  private final BasicController controller;
+  private final ClientController controller;
 
   public ConversationContext(User user,
                              ConversationHeader conversation,
                              BasicView view,
-                             BasicController controller) {
+                             ClientController controller) {
 
     this.user = user;
     this.conversation = conversation;
     this.view = view;
     this.controller = controller;
+  }
+
+  public String getAccess() {
+    return controller.getAccess(conversation.id, user.id);
   }
 
   public MessageContext add(String messageBody) {

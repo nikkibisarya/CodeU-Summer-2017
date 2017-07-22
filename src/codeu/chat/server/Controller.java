@@ -16,6 +16,7 @@ package codeu.chat.server;
 
 import java.util.Collection;
 import java.lang.NullPointerException;
+import java.lang.String;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -28,6 +29,7 @@ import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.common.Writeable;
+import codeu.chat.common.Access;
 
 public final class Controller implements RawController, BasicController {
 
@@ -66,6 +68,22 @@ public final class Controller implements RawController, BasicController {
     } catch (InterruptedException e) {
       System.err.println("fail to insert to queue");
     }
+  }
+
+  // TODO: can combine getAccess and joinConversation?
+  public String getAccess(Uuid conversation, Uuid user) {
+    Access access = model.userById().first(user).get(conversation);
+    switch (access) {
+      case MEMBER: return "Member";
+      case OWNER: return "Owner";
+      default: return "Creator";
+    }
+  }
+
+  public void joinConversation(Uuid conversation, Uuid user) {
+    User getUser = model.userById().first(user);
+    getUser.add(conversation, Access.MEMBER);
+    // TODO: store ChangeAccess obj?
   }
 
   @Override
@@ -173,6 +191,9 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
+
+      // add creator access to owner
+      foundOwner.add(id, Access.CREATOR);
 
       // save this current Conversationheader object to log file
       save(conversation);

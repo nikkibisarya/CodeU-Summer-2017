@@ -14,6 +14,7 @@ public interface Writeable {
   public static final String USER_STR = "user";
   public static final String MESSAGE_STR = "message";
   public static final String CONVERSATION_STR = "conversationheader";
+  public static final String CHANGE_ACCESS_REQUEST_STR = "changeaccessrequest";
   public void write(OutputStream out, Object value) throws IOException;
   public String getType();
 }

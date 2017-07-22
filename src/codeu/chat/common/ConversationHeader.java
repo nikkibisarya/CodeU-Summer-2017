@@ -64,6 +64,19 @@ public final class ConversationHeader implements Writeable {
     }
   };
 
+    // @Override
+    // public boolean equals(Object obj) {
+    //   if (obj == null) {
+    //     return false;
+    //   }
+    //   if (! (obj instanceof ConversationHeader)) {
+    //     return false;
+    //   }
+    //   final ConversationHeader other = (ConversationHeader) obj;
+    //   return this.id.equals(other.id) && this.owner.equals(other.owner) &&
+    //           this.creation.equals(other.creation) && this.title.equals(other.title);
+    // }
+
   public final Uuid id;
   public final Uuid owner;
   public final Time creation;

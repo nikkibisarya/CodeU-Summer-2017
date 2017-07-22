@@ -60,22 +60,29 @@ final class Controller implements ClientController {
     return response;
   }
 
-  public void joinConversation(Uuid conversation, Uuid user) {
+  public boolean joinConversation(Uuid conversation, Uuid user) {
 
     try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.JOIN_CONVERSATION_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), conversation);
       Uuid.SERIALIZER.write(connection.out(), user);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.JOIN_CONVERSATION_RESPONSE) {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.JOIN_CONVERSATION_RESPONSE_OK) {
         System.out.println("User joined success");
         LOG.info("User joined success");
+        return true;
+      } else if (Serializers.INTEGER.read(connection.in()) == NetworkCode.JOIN_CONVERSATION_RESPONSE_NO_ACCESS) {
+        System.out.println("User has insufficient access to join");
+        LOG.info("User has insufficient access to join");
+        return false;
       } else {
         LOG.error("Response from server failed.");
+        return false;
       }
     } catch (Exception ex) {
       System.out.println("ERROR: Exception during call on server. Check log for details.");
       LOG.error(ex, "Exception during call on server.");
+      return false;
     }
   }
 

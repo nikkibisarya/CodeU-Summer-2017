@@ -35,8 +35,8 @@ public final class UserContext {
     this.controller = controller;
   }
 
-  public void joinConversation(ConversationContext conversation) {
-    controller.joinConversation(conversation.conversation.id, user.id);
+  public boolean joinConversation(ConversationContext conversation) {
+    return controller.joinConversation(conversation.conversation.id, user.id);
   }
 
   public ConversationContext start(String name) {

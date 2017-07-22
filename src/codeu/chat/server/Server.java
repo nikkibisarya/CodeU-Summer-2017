@@ -208,9 +208,9 @@ public final class Server {
        public void onMessage(InputStream in, OutputStream out) throws IOException {
          final Uuid conversation = Uuid.SERIALIZER.read(in);
          final Uuid user = Uuid.SERIALIZER.read(in);
-         controller.joinConversation(conversation, user);
+         boolean access = controller.joinConversation(conversation, user);
 
-         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
+         Serializers.INTEGER.write(out, access ? NetworkCode.JOIN_CONVERSATION_RESPONSE_OK : NetworkCode.JOIN_CONVERSATION_RESPONSE_NO_ACCESS);
        }
      });
 

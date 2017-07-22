@@ -71,19 +71,23 @@ public final class Controller implements RawController, BasicController {
   }
 
   // TODO: can combine getAccess and joinConversation?
+  // called from a user that already joined convo
   public String getAccess(Uuid conversation, Uuid user) {
     Access access = model.userById().first(user).get(conversation);
     switch (access) {
       case MEMBER: return "Member";
       case OWNER: return "Owner";
-      default: return "Creator";
+      case CREATOR: return "Creator";
+      default: return "No Access";
     }
   }
 
-  public void joinConversation(Uuid conversation, Uuid user) {
+  public boolean joinConversation(Uuid conversation, Uuid user) {
     User getUser = model.userById().first(user);
-    getUser.add(conversation, Access.MEMBER);
-    // TODO: store ChangeAccess obj?
+
+    return getUser.containsConversation(conversation);
+    //getUser.add(conversation, Access.MEMBER);
+
   }
 
   @Override

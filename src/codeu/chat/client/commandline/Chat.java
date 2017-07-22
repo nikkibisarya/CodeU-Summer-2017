@@ -324,8 +324,12 @@ public final class Chat {
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
-            user.joinConversation(conversation);
-            panels.push(createConversationPanel(conversation));
+            boolean access = user.joinConversation(conversation);
+            if (access) {
+              panels.push(createConversationPanel(conversation));
+            } else {
+              System.out.format("ERROR: No access to join conversation '%s'\n", name);
+            }
           }
         } else {
           System.out.println("ERROR: Missing <title>");

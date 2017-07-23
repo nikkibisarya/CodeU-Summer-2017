@@ -64,9 +64,11 @@ public final class User implements Writeable {
   };
 
   public void add(Uuid conversation, Access access) {
-    if (!map.containsKey(conversation)) {
       map.put(conversation, access);
-    }
+  }
+
+  public void remove(Uuid conversation) {
+    map.remove(conversation);
   }
 
   public boolean containsConversation(Uuid conversation) {

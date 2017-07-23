@@ -30,6 +30,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.common.Writeable;
 import codeu.chat.common.Access;
+import codeu.chat.common.AccessCode;
 
 public final class Controller implements RawController, BasicController {
 
@@ -70,15 +71,49 @@ public final class Controller implements RawController, BasicController {
     }
   }
 
+  public boolean changeAccess(Uuid requestor, String userName, String access, Uuid conversation) {
+
+    User requestorUser = model.userById().first(requestor);
+    User user = model.userByText().first(userName);
+
+    if(requestorUser == null || user == null) {
+      return false;
+    }
+
+    Access requestorAccess = requestorUser.get(conversation);
+    if (requestorAccess!=Access.CREATOR && requestorAccess!=Access.OWNER) {
+      return false;
+    }
+
+    if (requestor.equals(user.id)) {
+      // trying to change self
+      return false;
+    }
+
+    // can't change a CREATOR
+    if (user.get(conversation) == Access.CREATOR) {
+      return false;
+    }
+
+    // TODO: add persistent here
+    switch (access) {
+      case AccessCode.MEMBER: user.add(conversation, Access.MEMBER); break;
+      case AccessCode.OWNER: user.add(conversation, Access.OWNER); break;
+      case AccessCode.REMOVE: user.remove(conversation); break;
+      default:
+    }
+    return true;
+  }
+
   // TODO: can combine getAccess and joinConversation?
   // called from a user that already joined convo
   public String getAccess(Uuid conversation, Uuid user) {
     Access access = model.userById().first(user).get(conversation);
     switch (access) {
-      case MEMBER: return "Member";
-      case OWNER: return "Owner";
-      case CREATOR: return "Creator";
-      default: return "No Access";
+      case MEMBER: return AccessCode.MEMBER;
+      case OWNER: return AccessCode.OWNER;
+      case CREATOR: return AccessCode.CREATOR;
+      default: return AccessCode.NO_ACCESS;
     }
   }
 

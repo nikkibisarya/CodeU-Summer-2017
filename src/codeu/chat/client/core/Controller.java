@@ -39,6 +39,33 @@ final class Controller implements ClientController {
     this.source = source;
   }
 
+  // TODO: add return options, no user found, no access,
+  public boolean changeAccess(Uuid requestor, String userName, String access, Uuid conversation) {
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_ACCESS_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), requestor);
+      Serializers.STRING.write(connection.out(), userName);
+      Serializers.STRING.write(connection.out(), access);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+
+      int response = Serializers.INTEGER.read(connection.in());
+      if (response == NetworkCode.CHANGE_ACCESS_RESPONSE_OK) {
+        LOG.info("Changed access success");
+        return true;
+      } else if (response == NetworkCode.CHANGE_ACCESS_RESPONSE_FAIL) {
+        LOG.info("Unable to change access");
+        return false;
+      } else {
+        LOG.error("Response from server failed.");
+        return false;
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+      return false;
+    }
+  }
+
   public String getAccess(Uuid conversation, Uuid user) {
 
     String response = null;
@@ -67,15 +94,15 @@ final class Controller implements ClientController {
       Uuid.SERIALIZER.write(connection.out(), conversation);
       Uuid.SERIALIZER.write(connection.out(), user);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.JOIN_CONVERSATION_RESPONSE_OK) {
-        System.out.println("User joined success");
+      int response = Serializers.INTEGER.read(connection.in());
+      if (response == NetworkCode.JOIN_CONVERSATION_RESPONSE_OK) {
         LOG.info("User joined success");
         return true;
-      } else if (Serializers.INTEGER.read(connection.in()) == NetworkCode.JOIN_CONVERSATION_RESPONSE_NO_ACCESS) {
-        System.out.println("User has insufficient access to join");
+      } else if (response == NetworkCode.JOIN_CONVERSATION_RESPONSE_NO_ACCESS) {
         LOG.info("User has insufficient access to join");
         return false;
       } else {
+        System.out.println("Response from server failed.");
         LOG.error("Response from server failed.");
         return false;
       }

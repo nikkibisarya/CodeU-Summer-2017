@@ -45,6 +45,12 @@ public final class ConversationContext {
     this.controller = controller;
   }
 
+  // access = "member", "owner", "remove"
+  // return if ok
+  public boolean changeAccess(Uuid requestor, String userName, String access, Uuid conversation) {
+    return controller.changeAccess(requestor, userName, access, conversation);
+  }
+
   public String getAccess() {
     return controller.getAccess(conversation.id, user.id);
   }

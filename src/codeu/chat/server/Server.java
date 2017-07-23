@@ -226,6 +226,20 @@ public final class Server {
       }
      });
 
+     this.commands.put(NetworkCode.CHANGE_ACCESS_REQUEST, new Command() {
+       @Override
+       public void onMessage(InputStream in, OutputStream out) throws IOException {
+         final Uuid requestor = Uuid.SERIALIZER.read(in);
+         final String userName = Serializers.STRING.read(in);
+         final String access = Serializers.STRING.read(in);
+         final Uuid conversation = Uuid.SERIALIZER.read(in);
+
+         final boolean result = controller.changeAccess(requestor, userName, access, conversation);
+
+         Serializers.INTEGER.write(out, result ? NetworkCode.CHANGE_ACCESS_RESPONSE_OK : NetworkCode.CHANGE_ACCESS_RESPONSE_FAIL);
+      }
+     });
+
 
     this.timeline.scheduleNow(new Runnable() {
       @Override

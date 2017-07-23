@@ -326,6 +326,7 @@ public final class Chat {
           } else {
             boolean access = user.joinConversation(conversation);
             if (access) {
+              System.out.format("User joined conversation '%s' successfully\n", name);
               panels.push(createConversationPanel(conversation));
             } else {
               System.out.format("ERROR: No access to join conversation '%s'\n", name);
@@ -388,6 +389,8 @@ public final class Chat {
         System.out.println("    Display all info about the current conversation.");
         System.out.println("  get-access");
         System.out.println("    Get access mode of current user.");
+        System.out.println("  change-access");
+        System.out.println("    Change access of other user.");
         System.out.println("  back");
         System.out.println("    Go back to USER MODE.");
         System.out.println("  exit");
@@ -455,6 +458,28 @@ public final class Chat {
       @Override
       public void invoke(List<String> args) {
         System.out.println("Current user has access mode: " + conversation.getAccess());
+      }
+    });
+
+    panel.register("change-access", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        if (args.size() >= 2) {
+          final String userName = args.get(0).trim();
+          final String access = args.get(1).trim();
+          // access is "member", "owner", "remove"
+
+          // TODO: handle duplicate names?
+          // handle self removal?
+          if (conversation.changeAccess(conversation.user.id, userName, access, conversation.conversation.id)) {
+            System.out.format("Current user changed access of '%s' to '%s'\n", userName, access);
+          } else {
+            System.out.format("ERROR: Unable change access of '%s' to '%s'\n", userName, access);
+          }
+
+        } else {
+          System.out.println("ERROR: expecting 2 arguments: mod-access <user_name> <access>");
+        }
       }
     });
 

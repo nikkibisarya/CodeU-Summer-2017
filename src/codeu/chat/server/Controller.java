@@ -79,6 +79,16 @@ public final class Controller implements RawController, BasicController {
       default: return "Creator";
     }
   }
+  //used by creators to demote owners
+  public void changeAccessToMember(Uuid conversation, Uuid user) {
+    User getUser = model.userById().first(user);
+    getUser.add(conversation, Access.MEMBER);
+  }
+  //used by owners & creators to promote to owners
+  public void changeAccessToOwner(Uuid conversation, Uuid user) {
+    User getUser = model.userById().first(user);
+    getUser.add(conversation, Access.OWNER);
+  }
 
   public void joinConversation(Uuid conversation, Uuid user) {
     User getUser = model.userById().first(user);

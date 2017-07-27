@@ -13,6 +13,8 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.server.FileWriter;
 import codeu.chat.util.Serializers;
 import codeu.chat.common.User;
+import codeu.chat.common.Access;
+import codeu.chat.common.ChangeAccessRequest;
 
 public class FileLoader {
 
@@ -70,6 +72,13 @@ public class FileLoader {
 
               // add new conversation to restore state
               this.controller.newConversation(conversationheader.id, conversationheader.title, conversationheader.owner, conversationheader.creation);
+              break;
+            case Writeable.CHANGE_ACCESS_REQUEST_STR:
+              value = ChangeAccessRequest.SERIALIZER.read(fin);
+              ChangeAccessRequest request = (ChangeAccessRequest)value;
+
+              // load access for the user
+              this.controller.loadChangeAccess(request.user, request.conversation, request.access);
               break;
             }
       }

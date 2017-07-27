@@ -31,6 +31,7 @@ import codeu.chat.util.Uuid;
 import codeu.chat.common.Writeable;
 import codeu.chat.common.Access;
 import codeu.chat.common.AccessCode;
+import codeu.chat.common.ChangeAccessRequest;
 
 public final class Controller implements RawController, BasicController {
 
@@ -95,14 +96,41 @@ public final class Controller implements RawController, BasicController {
       return false;
     }
 
+    if (access.equals(AccessCode.CREATOR)) {
+      return false;
+    }
+
     // TODO: add persistent here
     switch (access) {
-      case AccessCode.MEMBER: user.add(conversation, Access.MEMBER); break;
-      case AccessCode.OWNER: user.add(conversation, Access.OWNER); break;
-      case AccessCode.REMOVE: user.remove(conversation); break;
+      case AccessCode.MEMBER:
+        user.add(conversation, Access.MEMBER);
+        save(new ChangeAccessRequest(user.id, conversation, Access.MEMBER));
+        break;
+      case AccessCode.OWNER:
+        user.add(conversation, Access.OWNER);
+        save(new ChangeAccessRequest(user.id, conversation, Access.OWNER));
+        break;
+      case AccessCode.REMOVE:
+        user.remove(conversation);
+        save(new ChangeAccessRequest(user.id, conversation, Access.NO_ACCESS));
+        break;
       default:
     }
     return true;
+  }
+
+  public void loadChangeAccess(Uuid userid, Uuid conversationid, Access access) {
+
+    User user = model.userById().first(userid);
+    ConversationHeader conversation = model.conversationById().first(conversationid);
+
+    if (access == Access.NO_ACCESS) {
+      user.remove(conversationid);
+    } else {
+      user.add(conversationid, access);
+    }
+    LOG.info("loadChangeAccess success: (user=%s, conversation=%s, access=%s)", user.name, conversation.title, access);
+
   }
 
   // TODO: can combine getAccess and joinConversation?

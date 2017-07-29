@@ -115,6 +115,7 @@ public final class Controller implements RawController, BasicController {
         save(new ChangeAccessRequest(user.id, conversation, Access.NO_ACCESS));
         break;
       default:
+        return false;
     }
     return true;
   }
@@ -222,7 +223,15 @@ public final class Controller implements RawController, BasicController {
 
     User user = null;
 
-    if (isIdFree(id)) {
+    if (isUsernameInUse(name)) {
+
+      LOG.info(
+          "newUser fail - name in use (user.id=%s user.name=%s user.time=%s)",
+          id,
+          name,
+          creationTime);
+
+    } else if (isIdFree(id)) {
 
       user = new User(id, name, creationTime);
       model.add(user);
@@ -295,5 +304,9 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
+
+  private boolean isUsernameInUse(String name) {
+    return model.userByText().first(name) != null;
+  }
 
 }

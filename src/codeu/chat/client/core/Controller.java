@@ -234,7 +234,7 @@ final class Controller implements BasicController {
   }
 
 
-  public String addUser(Uuid userId, Uuid addUserId, Uuid
+  /*public String addUser(Uuid userId, Uuid addUserId, Uuid
       convoId, UserType memberBit){
 
     String message = "";
@@ -275,7 +275,7 @@ final class Controller implements BasicController {
       LOG.error(ex, "Exception during call on server.");
     } 
     return message;
-  }
+  }*/
   
   @Override
   public HashMap<Uuid, UserType> getConversationPermission(Uuid id) {

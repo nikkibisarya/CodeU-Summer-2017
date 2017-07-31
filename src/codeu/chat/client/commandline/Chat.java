@@ -337,12 +337,17 @@ public final class Chat {
           final ConversationContext conversation = findConvo(user, name);
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
-          } else {
+          } 
+          else if(hasAccess(conversation.getUser(),conversation)){
             panels.push(createConversationPanel(conversation));
+          }
+          else {
+              System.out.println("ERROR: you no longer have access to this conversation");
           }
         } else {
           System.out.println("ERROR: Missing <title>");
         }
+        
       }
     });
 
@@ -548,10 +553,10 @@ public final class Chat {
             System.out.println("List all messages in the current conversation.");
             System.out.println("m-add <message>");
             System.out.println("Add a new message to the current conversation as " + "the current user."); 
-            System.out.println("a-add <user> <M for member or O for owner> ");
+            /*System.out.println("a-add <user> <M for member or O for owner> ");
             System.out.println("Add a user to the current conversation and assign their membership.");
             System.out.println("a-remove <user>");
-            System.out.println("Remove a user from the current conversation.");
+            System.out.println("Remove a user from the current conversation.");*/
             System.out.println("mod-access <user> <accessType>");
             System.out.println("Change permissions of user. <userType> is O for owner, M for member, and R for remove");
             System.out.println("a-list");
@@ -671,7 +676,7 @@ public final class Chat {
           }
         });
 
-    // A-ADD
+    /*// A-ADD
     //
     // Adds a user to current conversation
     //
@@ -730,7 +735,7 @@ public final class Chat {
           }
           System.out.println();
         }
-    });
+    });*/
     
     // A-LIST
     //

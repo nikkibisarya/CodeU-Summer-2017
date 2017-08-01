@@ -15,8 +15,6 @@
 package codeu.chat.server;
 
 import java.util.Collection;
-import java.lang.NullPointerException;
-import java.lang.String;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -28,8 +26,6 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import codeu.chat.common.Writeable;
-import codeu.chat.common.Access;
 
 public final class Controller implements RawController, BasicController {
 
@@ -38,110 +34,9 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  private FileWriter fileWriter;
-  private boolean loading;
-
-  public Controller(Uuid serverId, Model model, FileWriter fileWriter) {
+  public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-
-    // store the FileWriter to user
-    this.fileWriter = fileWriter;
-    this.loading = true;
-    startUp();
-    this.loading = false;
-  }
-
-  public void startUp() {
-    FileLoader fileLoader = new FileLoader(this);
-    fileLoader.loadState();
-    new Thread(fileWriter).start();
-  }
-
-  // save the state from this Writeable to transaction log file
-  private void save(Writeable x) {
-    if(fileWriter == null)
-      return;
-    try {
-      if(!loading)
-        fileWriter.insert(x);
-    } catch (InterruptedException e) {
-      System.err.println("fail to insert to queue");
-    }
-  }
-
-  // TODO: can combine getAccess and joinConversation?
-  public String getAccess(Uuid conversation, Uuid user) {
-    Access access = model.userById().first(user).get(conversation);
-    switch (access) {
-      case MEMBER: return "Member";
-      case OWNER: return "Owner";
-      default: return "Creator";
-    }
-  }
-  //used by creators to demote owners
-
-  //used by owners & creators to promote to owners
-  public boolean changeAccess(Uuid changer, String name, String access, Uuid conversation)
-    {
-      final User user = model.userByText().first(name);
-      final User changerUser = model.userById().first(changer);
-
-      if (user == null || changerUser == null)
-        {
-          return false;
-        }
-      Access changerAccess = changerUser.get(conversation);
-      if(changerAccess != Access.CREATOR && changerAccess != Access.OWNER)
-        {
-          return false;
-        }
-      if(changer.equals(user.id))
-        {
-          return false;
-        }
-        if(user.get(conversation) == Access.CREATOR)
-        {
-          return false;
-        }
-
-        if(access == "Member" || access == "member" || access == "MEMBER")
-        {
-          user.add(conversation, Access.MEMBER);
-        }
-        else if(access == "Owner" || access == "owner" || access == "OWNER")
-        {
-          user.add(conversation, Access.OWNER);
-        }
-        else if(access == "Remove" || access == "remove" || access == "REMOVE")
-        {
-          user.remove(conversation);
-        }
-        else
-        {
-          return false;
-        }
-      return true;
-      }
-
-
-  public void loadChangeAccess(Uuid userid, Uuid conversationid, Access access) {
-
-    User user = model.userById().first(userid);
-    ConversationHeader conversation = model.conversationById().first(conversationid);
-
-    if (access == Access.NO_ACCESS) {
-      user.remove(conversationid);
-    } else {
-      user.add(conversationid, access);
-    }
-    LOG.info("loadChangeAccess success: (user=%s, conversation=%s, access=%s)", user.name, conversation.title, access);
-
-  }
-
-  public void joinConversation(Uuid conversation, Uuid user) {
-    User getUser = model.userById().first(user);
-    getUser.add(conversation, Access.MEMBER);
   }
 
   @Override
@@ -169,12 +64,8 @@ public final class Controller implements RawController, BasicController {
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body, conversation);
+      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
       model.add(message);
-
-      // save this current Message object to log file
-      save(message);
-
       LOG.info("Message added: %s", message.id);
 
       // Find and update the previous "last" message so that it's "next" value
@@ -218,9 +109,6 @@ public final class Controller implements RawController, BasicController {
       user = new User(id, name, creationTime);
       model.add(user);
 
-      // save this current User object to log file
-      save(user);
-
       LOG.info(
           "newUser success (user.id=%s user.name=%s user.time=%s)",
           id,
@@ -249,17 +137,77 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
-
-      // add creator access to owner
-      foundOwner.add(id, Access.CREATOR);
-
-      // save this current Conversationheader object to log file
-      save(conversation);
-
       LOG.info("Conversation added: " + id);
     }
 
     return conversation;
+  }
+
+  @Override
+  public boolean addUserInterest(String name, Uuid owner) {
+
+    final User foundOwner = model.userById().first(owner);
+    final User foundUser = model.userByText().first(name);
+
+    if(foundOwner.UserUpdateMap.containsKey(foundUser.id)) {
+      LOG.info("ERROR: User already in interests.");
+      return false;
+    } else {
+      foundOwner.UserUpdateMap.put(foundUser.id, Time.now());
+      LOG.info("User Interest added: " + foundUser.id);
+      return true;
+    }
+  }
+
+  @Override
+  public boolean removeUserInterest(String name, Uuid owner) {
+
+    final User foundOwner = model.userById().first(owner);
+    final User foundUser = model.userByText().first(name);
+
+    if(foundOwner.UserUpdateMap.containsKey(foundUser.id)) {
+      //foundOwner.UserSet.remove(foundUser.id);
+      foundOwner.UserUpdateMap.remove(foundUser.id);
+      LOG.info("User Interest removed: " + foundUser.id);
+      return true;
+    } else {
+      LOG.info("ERROR: User not found in interests.");
+      return false;
+    }
+  }
+
+  @Override
+  public boolean addConversationInterest(String title, Uuid owner) {
+
+    final User foundOwner = model.userById().first(owner);
+    final ConversationHeader foundConversation = model.conversationByText().first(title);
+
+    if(foundOwner.ConvoUpdateMap.containsKey(foundConversation.id)) {
+      LOG.info("ERROR: Conversation already in interests.");
+      return false;
+    } else {
+      //foundOwner.ConvoSet.add(foundConversation.id);
+      foundOwner.ConvoUpdateMap.put(foundConversation.id, Time.now());
+      LOG.info("Conversation Interest added: " + foundConversation.id);
+      return true;
+    }
+  }
+
+  @Override
+  public boolean removeConversationInterest(String title, Uuid owner) {
+
+    final User foundOwner = model.userById().first(owner);
+    final ConversationHeader foundConversation = model.conversationByText().first(title);
+
+    if(foundOwner.ConvoUpdateMap.containsKey(foundConversation.id)) {
+      //foundOwner.ConvoSet.remove(foundConversation.id);
+      foundOwner.ConvoUpdateMap.remove(foundConversation.id);
+      LOG.info("Conversation Interest removed: " + foundConversation.id);
+      return true;
+    } else {
+      LOG.info("ERROR: Conversation not found in interests.");
+      return false;
+    }
   }
 
   private Uuid createId() {

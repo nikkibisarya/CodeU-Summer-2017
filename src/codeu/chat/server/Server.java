@@ -41,16 +41,6 @@ import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 
-import codeu.chat.server.FileWriter;
-import codeu.chat.common.Writeable;
-import java.lang.Thread;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import java.io.FileInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-
 public final class Server {
 
   private interface Command {
@@ -58,6 +48,7 @@ public final class Server {
   }
 
   private static final ServerInfo info = new ServerInfo();
+
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
@@ -80,17 +71,11 @@ public final class Server {
 
     this.id = id;
     this.secret = secret;
-
-    BlockingQueue<Writeable> blockq = new LinkedBlockingQueue<Writeable>();
-    FileWriter fileWriter = new FileWriter(blockq);
-
+    this.controller = new Controller(id, model);
     this.relay = relay;
 
-    // constructs and starts up the controller loading and writing thread
-    this.controller = new Controller(id, model, fileWriter);
-
     // New Message - A client wants to add a new message to the back end.
-    this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
+    this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -111,7 +96,7 @@ public final class Server {
     });
 
     // New User - A client wants to add a new user to the back end.
-    this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command() {
+    this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -124,7 +109,7 @@ public final class Server {
     });
 
     // New Conversation - A client wants to add a new conversation to the back end.
-    this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST,  new Command() {
+    this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST,  new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -138,7 +123,7 @@ public final class Server {
     });
 
     // Get Users - A client wants to get all the users from the back end.
-    this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
+    this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -150,7 +135,7 @@ public final class Server {
     });
 
     // Get Conversations - A client wants to get all the conversations from the back end.
-    this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
+    this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -165,7 +150,7 @@ public final class Server {
     //                           the back end. Normally this will be done after calling
     //                           Get Conversations to get all the headers and now the client
     //                           wants to get a subset of the payloads.
-    this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
+    this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -178,7 +163,7 @@ public final class Server {
     });
 
     // Get Messages By Id - A client wants to get a subset of the messages from the back end.
-    this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
+    this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -190,8 +175,98 @@ public final class Server {
       }
     });
 
+     // Add User Interest - A client wants to add a user to their interests.
+    this.commands.put (NetworkCode.NEW_USER_INTEREST_REQUEST, new Command(){
+      @Override
+      public void onMessage (InputStream in, OutputStream out) throws IOException {
+
+        final String name = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+
+        final boolean interestResponse = controller.addUserInterest(name, owner);
+
+        Serializers.INTEGER.write(out, NetworkCode.NEW_USER_INTEREST_RESPONSE);
+        Serializers.BOOLEAN.write(out, interestResponse);
+      }
+    });
+
+    // Remove User Interest - A client wants to remove a user from their interests.
+    this.commands.put (NetworkCode.REMOVE_USER_INTEREST_REQUEST, new Command(){
+      @Override
+      public void onMessage (InputStream in, OutputStream out) throws IOException {
+
+        final String name = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+
+        final boolean interestResponse = controller.removeUserInterest(name, owner);
+
+        Serializers.INTEGER.write (out, NetworkCode.REMOVE_USER_INTEREST_RESPONSE);
+        Serializers.BOOLEAN.write(out, interestResponse);
+      }
+    });
+
+    // Add Conversation Interest - A client wants to add a conversation to their interests.
+    this.commands.put (NetworkCode.NEW_CONVERSATION_INTEREST_REQUEST, new Command(){
+      @Override
+      public void onMessage (InputStream in, OutputStream out) throws IOException {
+
+        final String title = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+
+        final boolean interestResponse = controller.addConversationInterest(title, owner);
+
+        Serializers.INTEGER.write (out, NetworkCode.NEW_CONVERSATION_INTEREST_RESPONSE);
+        Serializers.BOOLEAN.write(out, interestResponse);
+      }
+    });
+
+    // Remove Conversation Interest - A client wants to remove a conversation from their interests.
+    this.commands.put (NetworkCode.REMOVE_CONVERSATION_INTEREST_REQUEST, new Command(){
+      @Override
+      public void onMessage (InputStream in, OutputStream out) throws IOException {
+
+        final String title = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+
+        final boolean interestResponse = controller.removeConversationInterest(title, owner);
+
+        Serializers.INTEGER.write (out, NetworkCode.REMOVE_CONVERSATION_INTEREST_RESPONSE);
+        Serializers.BOOLEAN.write(out, interestResponse);
+      }
+    });
+
+    // User Status Update - A client wants to get a status update on their user interest.
+    this.commands.put (NetworkCode.USER_STATUS_UPDATE_REQUEST, new Command(){
+      @Override
+      public void onMessage (InputStream in, OutputStream out) throws IOException {
+
+        final String name = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+
+        final Collection<String> conversations = view.userStatusUpdate(name, owner);
+
+        Serializers.INTEGER.write (out, NetworkCode.USER_STATUS_UPDATE_RESPONSE);
+        Serializers.collection(Serializers.STRING).write(out, conversations);
+      }
+    });
+
+    // Conversation Status Update - A client wants to get a status update on their conversation interest.
+    this.commands.put (NetworkCode.CONVERSATION_STATUS_UPDATE_REQUEST, new Command(){
+      @Override
+      public void onMessage (InputStream in, OutputStream out) throws IOException {
+
+        final String title = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+
+        final int updateResponse = view.conversationStatusUpdate(title, owner);
+
+        Serializers.INTEGER.write (out, NetworkCode.CONVERSATION_STATUS_UPDATE_RESPONSE);
+        Serializers.INTEGER.write (out, updateResponse);
+      }
+    });
+
     // Gets Up-Time and Version
-    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command(){
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         final Time upTime = Server.info.getTime();
@@ -203,50 +278,8 @@ public final class Server {
       }
      });
 
-     this.commands.put(NetworkCode.JOIN_CONVERSATION_REQUEST, new Command() {
-       @Override
-       public void onMessage(InputStream in, OutputStream out) throws IOException {
-         final Uuid conversation = Uuid.SERIALIZER.read(in);
-         final Uuid user = Uuid.SERIALIZER.read(in);
-         controller.joinConversation(conversation, user);
 
-         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
-       }
-     });
-
-     this.commands.put(NetworkCode.GET_ACCESS_REQUEST, new Command() {
-       @Override
-       public void onMessage(InputStream in, OutputStream out) throws IOException {
-         final Uuid conversation = Uuid.SERIALIZER.read(in);
-         final Uuid user = Uuid.SERIALIZER.read(in);
-
-         final String access = controller.getAccess(conversation, user);
-         Serializers.INTEGER.write(out, NetworkCode.GET_ACCESS_RESPONSE);
-         Serializers.nullable(Serializers.STRING).write(out, access);
-      }
-     });
-
-    this.commands.put(NetworkCode.CHANGE_ACCESS_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
-        final Uuid requestor = Uuid.SERIALIZER.read(in);
-        final String userName = Serializers.STRING.read(in);
-        final String access = Serializers.STRING.read(in);
-        final Uuid conversation = Uuid.SERIALIZER.read(in);
-        final boolean result = controller.changeAccess(requestor, userName, access, conversation);
-        if(result)
-        {
-          Serializers.INTEGER.write(out, NetworkCode.CHANGE_ACCESS_RESPONSE);
-        }
-        else
-        {
-          Serializers.INTEGER.write(out, NetworkCode.CHANGE_ACCESS_FAIL);
-        }
-      }
-    });
-
-
-    this.timeline.scheduleNow(new Runnable() {
+    this.timeline.scheduleNow(new Runnable(){
       @Override
       public void run() {
         try {
@@ -269,7 +302,7 @@ public final class Server {
     });
   }
 
-  public void handleConnection(final Connection connection) {
+  public void handleConnection(final Connection connection){
     timeline.scheduleNow(new Runnable() {
       @Override
       public void run() {

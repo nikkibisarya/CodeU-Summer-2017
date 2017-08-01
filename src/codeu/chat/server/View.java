@@ -85,6 +85,85 @@ public final class View implements BasicView, SinglesView {
   @Override
   public Message findMessage(Uuid id) { return model.messageById().first(id); }
 
+  @Override
+  public Collection<String> userStatusUpdate(String name, Uuid owner) {
+
+    Collection<ConversationPayload> allConversations = all(model.conversationPayloadById());
+    Collection<String> contributions = new ArrayList<String>();
+
+    final User foundOwner = model.userById().first(owner);
+    final User foundUser = model.userByText().first(name);
+    
+    if (foundUser != null) {
+      if (foundOwner.UserUpdateMap.containsKey(foundUser.id)) {
+        final Time lastUpdate = foundOwner.UserUpdateMap.get(foundUser.id);
+
+      for (ConversationPayload conversationPayload : allConversations) {
+          Message currentMessage = model.messageById().first(conversationPayload.firstMessage);
+          boolean foundMessage = false;
+          while (currentMessage != null && foundMessage == false) {
+            if (lastUpdate.compareTo(currentMessage.creation) < 0 && currentMessage.author.equals(foundUser.id)) {
+              contributions.add(model.conversationById().first(conversationPayload.id).title);
+              foundMessage = true;
+            }
+            currentMessage = model.messageById().first(currentMessage.next);
+          }
+       // if(!contributions.contains(model.conversationById().first(conversationPayload.id).title)) {
+          if (model.conversationById().first(conversationPayload.id).owner.equals(foundUser.id)) {
+            if(lastUpdate.compareTo(model.conversationById().first(conversationPayload.id).creation) < 0) {
+              contributions.add(model.conversationById().first(conversationPayload.id).title + " (Creator)");
+            }
+          }
+       // }
+        foundOwner.UserUpdateMap.put(foundUser.id, Time.now());
+      }
+
+      if (contributions.isEmpty()) {
+        contributions.add("(No recent conversations)");
+      }
+    // finally, update the time that status update was last requested for the specified user to now
+    foundOwner.UserUpdateMap.put(foundUser.id, Time.now());
+    } else {
+        // if foundUser is not in the current user's interests, add the note to the collection
+        contributions.add("ERROR: User is not found in interest");
+        LOG.info("ERROR: User is not found in interest.");
+      }
+    }
+    return contributions;
+
+  }
+
+  @Override
+  public int conversationStatusUpdate(String title, Uuid owner) {
+
+    int newMessages = 0;
+
+    final User foundOwner = model.userById().first(owner);
+    final ConversationHeader foundConversation = model.conversationByText().first(title);
+    final ConversationPayload foundConversationPayload = model.conversationPayloadById().first(foundConversation.id);
+    final Time lastUpdate = foundOwner.ConvoUpdateMap.get(foundConversation.id);
+    
+    if (foundConversation != null) {
+      if (foundOwner.ConvoUpdateMap.containsKey(foundConversation.id)) {
+          Message currentMessage = model.messageById().first(foundConversationPayload.firstMessage);
+          while (currentMessage != null) {
+            if (lastUpdate.compareTo(currentMessage.creation) < 0) {
+              newMessages++;
+            }
+            currentMessage = model.messageById().first(currentMessage.next);
+          }
+        foundOwner.ConvoUpdateMap.put(foundConversation.id, Time.now());
+        } else {
+          newMessages = -1;
+        }
+    } else {
+        // return some negative value to specify that conversation doesn't exist
+        newMessages = -2;
+      }
+
+      return newMessages;
+    }
+
   private static <S,T> Collection<T> all(StoreAccessor<S,T> store) {
 
     final Collection<T> all = new ArrayList<>();

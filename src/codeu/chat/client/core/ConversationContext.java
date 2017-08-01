@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import codeu.chat.common.ClientController;
+import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -32,26 +32,17 @@ public final class ConversationContext {
   public final ConversationHeader conversation;
 
   private final BasicView view;
-  private final ClientController controller;
+  private final BasicController controller;
 
   public ConversationContext(User user,
                              ConversationHeader conversation,
                              BasicView view,
-                             ClientController controller) {
+                             BasicController controller) {
 
     this.user = user;
     this.conversation = conversation;
     this.view = view;
     this.controller = controller;
-  }
-
-  public String getAccess() {
-    return controller.getAccess(conversation.id, user.id);
-  }
-
-
-  public boolean changeAccess(Uuid changer, String name, String access, Uuid conversation) {
-   return controller.changeAccess(changer, name, access, conversation);
   }
 
   public MessageContext add(String messageBody) {
@@ -96,5 +87,25 @@ public final class ConversationContext {
   private MessageContext getMessage(Uuid id) {
     final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
+  }
+
+  public boolean changeAccess(Uuid target, UserType accessType) {
+    return controller.changeAccess(user.id, target, conversation.id, accessType);
+  }
+
+  /*public String addUser(Uuid target, UserType memberBit){ 
+    return controller.addUser(user.id, target, conversation.id, memberBit);
+  }
+
+  public String removeUser(Uuid target){
+    return controller.removeUser(user.id, target, conversation.id);
+  }*/
+  
+  public HashMap<Uuid, UserType> getConversationPermission() {
+	return controller.getConversationPermission(conversation.id);
+  }
+  
+  public Uuid getUser() {
+	return user.id;
   }
 }

@@ -23,7 +23,21 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class ConversationHeader {
+import java.lang.String;
+
+public final class ConversationHeader implements Writeable {
+
+  // get the type of this Writeable as a String
+  @Override
+  public String getType() {
+    return CONVERSATION_STR;
+  }
+
+  // write this Writeable as a ConversationHeader
+  @Override
+  public void write(OutputStream out, Object value) throws IOException {
+    SERIALIZER.write(out, (ConversationHeader)value);
+  }
 
   public static final Serializer<ConversationHeader> SERIALIZER = new Serializer<ConversationHeader>() {
 
@@ -49,6 +63,19 @@ public final class ConversationHeader {
 
     }
   };
+
+    // @Override
+    // public boolean equals(Object obj) {
+    //   if (obj == null) {
+    //     return false;
+    //   }
+    //   if (! (obj instanceof ConversationHeader)) {
+    //     return false;
+    //   }
+    //   final ConversationHeader other = (ConversationHeader) obj;
+    //   return this.id.equals(other.id) && this.owner.equals(other.owner) &&
+    //           this.creation.equals(other.creation) && this.title.equals(other.title);
+    // }
 
   public final Uuid id;
   public final Uuid owner;

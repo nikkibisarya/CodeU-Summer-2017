@@ -18,16 +18,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class User {
+import java.lang.String;
+import java.util.HashMap;
+import java.util.Map;
+
+public final class User implements Writeable {
+
+  // get the type of this Writeable as a String
+  @Override
+  public String getType() {
+    return USER_STR;
+  }
+
+  // write this Writeable as a User
+  @Override
+  public void write(OutputStream out, Object value) throws IOException {
+    SERIALIZER.write(out, (User)value);
+  }
 
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
 
@@ -48,16 +60,31 @@ public final class User {
           Serializers.STRING.read(in),
           Time.SERIALIZER.read(in)
       );
-
     }
   };
-  
-  public HashMap<Uuid, Time> UserUpdateMap = new HashMap<Uuid, Time>();
-  public HashMap<Uuid, Time> ConvoUpdateMap = new HashMap<Uuid, Time>();
+
+  public void add(Uuid conversation, Access access) {
+      map.put(conversation, access);
+  }
+
+  public void remove(Uuid conversation) {
+    map.remove(conversation);
+  }
+
+  public boolean containsConversation(Uuid conversation) {
+    return map.containsKey(conversation);
+  }
+
+  public Access get(Uuid conversation) {
+    return map.get(conversation);
+  }
 
   public final Uuid id;
   public final String name;
   public final Time creation;
+
+  // map from conversation id to Access
+  private Map<Uuid, Access> map;
 
   public User(Uuid id, String name, Time creation) {
 
@@ -65,5 +92,6 @@ public final class User {
     this.name = name;
     this.creation = creation;
 
+    this.map = new HashMap<>();
   }
 }

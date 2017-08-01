@@ -48,6 +48,18 @@ public final class Time implements Comparable<Time> {
 
   public long inMs() { return date.getTime(); }
 
+  // @Override
+  // public boolean equals(Object obj) {
+  //   if (obj == null) {
+  //     return false;
+  //   }
+  //   if (! (obj instanceof Time)) {
+  //     return false;
+  //   }
+  //   final Time other = (Time) obj;
+  //   return this.compareTo(other) == 0;
+  // }
+
   @Override
   public int compareTo(Time other) {
     return date.compareTo(other.date);

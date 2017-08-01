@@ -79,6 +79,35 @@ final class Controller implements ClientController {
     }
   }
 
+  public boolean changeAccess(Uuid changer, String name, String access, Uuid conversation) {
+
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_ACCESS_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), changer);
+      Serializers.STRING.write(connection.out(), name);
+      Serializers.STRING.write(connection.out(), access);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+
+      int response = Serializers.INTEGER.read(connection.in());
+      if (response == NetworkCode.CHANGE_ACCESS_RESPONSE) {
+        System.out.println("User changed success");
+        LOG.info("User joined success");
+        return true;
+      } else if(response == NetworkCode.CHANGE_ACCESS_FAIL) {
+        LOG.info("Unable to change access");
+        return false;
+      } else {
+        System.out.println("Response from server failed.");
+        LOG.error("Response from server failed.");
+        return false;
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+      return false;
+    }
+  }
+
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
 

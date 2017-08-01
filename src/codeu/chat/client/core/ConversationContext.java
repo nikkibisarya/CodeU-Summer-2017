@@ -49,12 +49,9 @@ public final class ConversationContext {
     return controller.getAccess(conversation.id, user.id);
   }
 
-  public void changeAccessToMember(Uuid name) {
-    controller.changeAccessToMember(conversation.id, name);
-  }
 
-  public void changeAccessToOwner(Uuid name) {
-    controller.changeAccessToOwner(conversation.id, name);
+  public boolean changeAccess(Uuid changer, String name, String access, Uuid conversation) {
+   return controller.changeAccess(changer, name, access, conversation);
   }
 
   public MessageContext add(String messageBody) {

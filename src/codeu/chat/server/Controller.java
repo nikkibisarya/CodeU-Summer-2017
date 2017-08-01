@@ -80,20 +80,68 @@ public final class Controller implements RawController, BasicController {
     }
   }
   //used by creators to demote owners
-  public void changeAccessToMember(Uuid conversation, Uuid user) {
-    User getUser = model.userById().first(user);
-    getUser.add(conversation, Access.MEMBER);
-  }
+
   //used by owners & creators to promote to owners
-  public void changeAccessToOwner(Uuid conversation, Uuid user) {
-    User getUser = model.userById().first(user);
-    getUser.add(conversation, Access.OWNER);
+  public boolean changeAccess(Uuid changer, String name, String access, Uuid conversation)
+    {
+      final User user = model.userByText().first(name);
+      final User changerUser = model.userById().first(changer);
+
+      if (user == null || changerUser == null)
+        {
+          return false;
+        }
+      Access changerAccess = changerUser.get(conversation);
+      if(changerAccess != Access.CREATOR && changerAccess != Access.OWNER)
+        {
+          return false;
+        }
+      if(changer.equals(user.id))
+        {
+          return false;
+        }
+        if(user.get(conversation) == Access.CREATOR)
+        {
+          return false;
+        }
+
+        if(access == "Member" || access == "member" || access == "MEMBER")
+        {
+          user.add(conversation, Access.MEMBER);
+        }
+        else if(access == "Owner" || access == "owner" || access == "OWNER")
+        {
+          user.add(conversation, Access.OWNER);
+        }
+        else if(access == "Remove" || access == "remove" || access == "REMOVE")
+        {
+          user.remove(conversation);
+        }
+        else
+        {
+          return false;
+        }
+      return true;
+      }
+
+
+  public void loadChangeAccess(Uuid userid, Uuid conversationid, Access access) {
+
+    User user = model.userById().first(userid);
+    ConversationHeader conversation = model.conversationById().first(conversationid);
+
+    if (access == Access.NO_ACCESS) {
+      user.remove(conversationid);
+    } else {
+      user.add(conversationid, access);
+    }
+    LOG.info("loadChangeAccess success: (user=%s, conversation=%s, access=%s)", user.name, conversation.title, access);
+
   }
 
   public void joinConversation(Uuid conversation, Uuid user) {
     User getUser = model.userById().first(user);
     getUser.add(conversation, Access.MEMBER);
-    // TODO: store ChangeAccess obj?
   }
 
   @Override

@@ -69,6 +69,12 @@ public final class User implements Writeable {
     }
   }
 
+  public void remove(Uuid conversation) {
+    if (!map.containsKey(conversation)) {
+      map.remove(conversation);
+    }
+  }
+
   public boolean containsConversation(Uuid conversation) {
     return map.containsKey(conversation);
   }

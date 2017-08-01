@@ -5,4 +5,5 @@ import codeu.chat.util.Uuid;
 public interface ClientController extends BasicController {
   public void joinConversation(Uuid conversation, Uuid user);
   public String getAccess(Uuid conversation, Uuid user);
+  public boolean changeAccess(Uuid changer, String name, String access, Uuid conversation);
 }

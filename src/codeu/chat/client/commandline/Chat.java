@@ -298,11 +298,10 @@ public final class Chat {
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
           final ConversationContext conversation = user.start(name);
-          Context context = new Context();
           if (conversation == null) {
             System.out.println("ERROR: Failed to create new conversation");
           } else {
-            panels.push(createConversationPanel(conversation, context));
+            panels.push(createConversationPanel(conversation));
           }
         } else {
           System.out.println("ERROR: Missing <title>");
@@ -322,12 +321,11 @@ public final class Chat {
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
           final ConversationContext conversation = find(name);
-          Context context = new Context();
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
             user.joinConversation(conversation);
-            panels.push(createConversationPanel(conversation, context));
+            panels.push(createConversationPanel(conversation));
           }
         } else {
           System.out.println("ERROR: Missing <title>");
@@ -365,7 +363,7 @@ public final class Chat {
     return panel;
   }
 
-  private Panel createConversationPanel(final ConversationContext conversation, Context context) {
+  private Panel createConversationPanel(final ConversationContext conversation) {
 
     final Panel panel = new Panel();
 
@@ -456,78 +454,32 @@ public final class Chat {
     panel.register("get-access", new Panel.Command() {
       @Override
       public void invoke(List<String> args) {
-        System.out.println("Current user has access mode: " + conversation.getAccess());
+        System.out.format("Current user has access mode: " + conversation.getAccess());
       }
     });
 
-    panel.register("make-owner", new Panel.Command() {
+    panel.register("change-access", new Panel.Command() {
       @Override
       public void invoke(List<String> args) {
         // this only takes first token of the conversation name (surround with quotes for inputs with whitespaces)
-        final String name = args.size() > 0 ? args.get(0).trim() : "";
-        if (name.length() > 0) {
-          final UserContext user = findUser(name);
-          if (user == null) {
-            System.out.format("ERROR: Not a user-- '%s'\n", name);
-          } else {
-              final String access = conversation.getAccess();
-              if (access == "Creator" || access == "Owner") {
-                //make user entered an owner
-                conversation.changeAccessToOwner(user.user.id);
-              } else {
-                System.out.println("ERROR: Not a creator or owner so no clearance to change access.");
-              }
+        if(args.size() >= 2)
+        {
+          final String name = args.get(0).trim();
+          final String access = args.get(1).trim();
+          if (conversation.changeAccess(conversation.user.id, name, access, conversation.conversation.id)) {
+            System.out.format("You have changed the access of '%s' to '%s' in this conversation\n", name, access);
           }
-        } else {
-          System.out.println("ERROR: Missing <username>");
-        }
-      }
-
-      private UserContext findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user;
+          else
+          {
+            System.out.format("ERROR: Unable to change the access of '%s' to '%s'\n", name, access);
           }
         }
-        return null;
+        else {
+          System.out.format("ERROR: Missing <user_name> <access>");
+        }
       }
 
     });
-
-      panel.register("make-member", new Panel.Command() {
-        @Override
-
-        public void invoke(List<String> args) {
-          // this only takes first token of the conversation name (surround with quotes for inputs with whitespaces)
-          final String name = args.size() > 0 ? args.get(0).trim() : "";
-          if (name.length() > 0) {
-            final UserContext user = findUser(name);
-            if (user == null) {
-              System.out.format("ERROR: Not a user-- '%s'\n", name);
-            } else {
-              final String access = conversation.getAccess();
-              if (access == "Creator") {
-                //make user entered an owner
-                conversation.changeAccessToMember(user.user.id);
-              } else {
-                System.out.println("ERROR: Not a creator so no clearance to change access.");
-              }
-            }
-          } else {
-            System.out.println("ERROR: Missing <username>");
-          }
-        }
-
-        private UserContext findUser(String name) {
-          for (final UserContext user : context.allUsers()) {
-            if (user.user.name.equals(name)) {
-              return user;
-            }
-          }
-          return null;
-        }
-
-      });
 
     // Find the first user with the given name and return a user context
     // for that user. If no user is found, the function will return null.

@@ -18,6 +18,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
@@ -62,6 +66,9 @@ public final class User implements Writeable {
       );
     }
   };
+  
+  public HashMap<Uuid, Time> UserUpdateMap = new HashMap<Uuid, Time>();
+  public HashMap<Uuid, Time> ConvoUpdateMap = new HashMap<Uuid, Time>();
 
   public void add(Uuid conversation, Access access) {
       map.put(conversation, access);

@@ -644,8 +644,6 @@ public final class Chat {
           final String access = args.get(1).trim();
           // access is "member", "owner", "remove"
 
-          // TODO: handle duplicate names?
-          // handle self removal?
           if (conversation.changeAccess(conversation.user.id, userName, access, conversation.conversation.id)) {
             System.out.format("Current user changed access of '%s' to '%s'\n", userName, access);
           } else {

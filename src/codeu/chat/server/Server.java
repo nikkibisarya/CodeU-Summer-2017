@@ -51,6 +51,8 @@ import java.io.FileInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import codeu.chat.common.PasswordHasher;
+
 public final class Server {
 
   private interface Command {
@@ -116,8 +118,9 @@ public final class Server {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
+        final PasswordHasher hasher = PasswordHasher.SERIALIZER.read(in);
         final String name = Serializers.STRING.read(in);
-        final User user = controller.newUser(name);
+        final User user = controller.newUser(name, hasher);
 
         Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
         Serializers.nullable(User.SERIALIZER).write(out, user);
@@ -399,7 +402,7 @@ public final class Server {
     User user = model.userById().first(relayUser.id());
 
     if (user == null) {
-      user = controller.newUser(relayUser.id(), relayUser.text(), relayUser.time());
+      //user = controller.newUser(relayUser.id(), relayUser.text(), relayUser.time());
     }
 
     ConversationHeader conversation = model.conversationById().first(relayConversation.id());

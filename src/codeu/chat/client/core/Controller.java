@@ -28,6 +28,7 @@ import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
 import codeu.chat.common.ClientController;
+import codeu.chat.common.PasswordHasher;
 
 final class Controller implements ClientController {
 
@@ -139,13 +140,14 @@ final class Controller implements ClientController {
   }
 
   @Override
-  public User newUser(String name) {
+  public User newUser(String name, PasswordHasher hasher) {
 
     User response = null;
 
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_USER_REQUEST);
+      PasswordHasher.SERIALIZER.write(connection.out(), hasher);
       Serializers.STRING.write(connection.out(), name);
       LOG.info("newUser: Request completed.");
 
@@ -238,7 +240,7 @@ final class Controller implements ClientController {
   public boolean addConversationInterest(String title, Uuid owner) {
 
     boolean response = false;
-    
+
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_CONVERSATION_INTEREST_REQUEST);

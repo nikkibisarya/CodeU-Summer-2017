@@ -19,6 +19,7 @@ import java.util.Stack;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
+import java.util.Arrays;
 
 import codeu.chat.common.ServerInfo;
 import codeu.chat.client.core.Context;
@@ -26,6 +27,9 @@ import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
+
+import java.io.Console;
+import codeu.chat.common.PasswordHasher;
 
 public final class Chat {
 
@@ -103,11 +107,24 @@ public final class Chat {
     // Find the first user with the given name and return a user context
     // for that user. If no user is found, the function will return null.
     private UserContext findUser(final Context context, String name) {
-    for (final UserContext user : context.allUsers()) {
-      if (user.user.name.equals(name)) {
-        return user;
+      for (final UserContext user : context.allUsers()) {
+        if (user.user.name.equals(name)) {
+          return user;
+        }
       }
+      return null;
     }
+
+    private boolean passwordMatch(PasswordHasher hasher, char[] password) {
+      return hasher.equals(new PasswordHasher(password));
+    }
+
+    private UserContext findUserPassword(final Context context, String name, char[] password) {
+      for (final UserContext user : context.allUsers()) {
+        if (user.user.name.equals(name) && passwordMatch(user.user.hasher, password)) {
+          return user;
+        }
+      }
       return null;
     }
 
@@ -190,9 +207,24 @@ public final class Chat {
         // this only takes first token of the name (surround with quotes for inputs with whitespaces)
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
-          if (context.create(name) == null) {
-            System.out.println("ERROR: Failed to create new user");
+
+          Console console = System.console();
+          char[] password;
+          if (console != null && (password = console.readPassword("%s", "Create password: ")) != null) {
+            char[] verify;
+            if ((verify = console.readPassword("%s", "Verify password: ")) != null) {
+              if (Arrays.equals(password, verify)) {
+                if (context.create(name, password) != null) {
+                } else {
+                  System.out.println("ERROR: Failed to create new user");
+                }
+              } else {
+                System.out.println("ERROR: Passwords didn't match");
+              }
+              return;
+            }
           }
+          System.out.println("ERROR: Failed to create & verify password");
         } else {
           System.out.println("ERROR: Missing <username>");
         }
@@ -210,11 +242,17 @@ public final class Chat {
         // this only takes first token of the name (surround with quotes for inputs with whitespaces)
         final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
-          final UserContext user = findUser(context, name);
-          if (user == null) {
-            System.out.format("ERROR: Failed to sign in as '%s'\n", name);
+          Console console = System.console();
+          char[] password;
+          if (console != null && (password = console.readPassword("%s", "Enter password: ")) != null) {
+            final UserContext user = findUserPassword(context, name, password);
+            if (user == null) {
+              System.out.format("ERROR: Failed to sign in as '%s'\n", name);
+            } else {
+              panels.push(createUserPanel(context, user));
+            }
           } else {
-            panels.push(createUserPanel(context, user));
+            System.out.println("ERROR: Failed to enter password");
           }
         } else {
           System.out.println("ERROR: Missing <username>");

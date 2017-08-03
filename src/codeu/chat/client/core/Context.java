@@ -24,6 +24,7 @@ import codeu.chat.common.User;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.ConnectionSource;
+import codeu.chat.common.PasswordHasher;
 
 public final class Context {
 
@@ -39,8 +40,10 @@ public final class Context {
     this.controller = new Controller(source);
   }
 
-  public UserContext create(String name) {
-    final User user = controller.newUser(name);
+  public UserContext create(String name, char[] password) {
+
+    PasswordHasher hasher = new PasswordHasher(password);
+    final User user = controller.newUser(name, hasher);
     return user == null ?
         null :
         new UserContext(user, view, controller);

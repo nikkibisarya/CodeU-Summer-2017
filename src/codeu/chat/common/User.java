@@ -53,6 +53,7 @@ public final class User implements Writeable {
       Uuid.SERIALIZER.write(out, value.id);
       Serializers.STRING.write(out, value.name);
       Time.SERIALIZER.write(out, value.creation);
+      PasswordHasher.SERIALIZER.write(out, value.hasher);
 
     }
 
@@ -62,11 +63,12 @@ public final class User implements Writeable {
       return new User(
           Uuid.SERIALIZER.read(in),
           Serializers.STRING.read(in),
-          Time.SERIALIZER.read(in)
+          Time.SERIALIZER.read(in),
+          PasswordHasher.SERIALIZER.read(in)
       );
     }
   };
-  
+
   public HashMap<Uuid, Time> UserUpdateMap = new HashMap<Uuid, Time>();
   public HashMap<Uuid, Time> ConvoUpdateMap = new HashMap<Uuid, Time>();
 
@@ -89,16 +91,18 @@ public final class User implements Writeable {
   public final Uuid id;
   public final String name;
   public final Time creation;
+  public final PasswordHasher hasher;
 
   // map from conversation id to Access
   private Map<Uuid, Access> map;
 
-  public User(Uuid id, String name, Time creation) {
+  public User(Uuid id, String name, Time creation, PasswordHasher hasher) {
 
     this.id = id;
     this.name = name;
     this.creation = creation;
 
     this.map = new HashMap<>();
+    this.hasher = hasher;
   }
 }

@@ -57,7 +57,7 @@ public class FileLoader {
               User user = (User)value;
 
               // add new user to restore state
-              this.controller.newUser(user.id, user.name, user.creation);
+              this.controller.newUser(user.id, user.name, user.creation, user.hasher);
               break;
             case Writeable.MESSAGE_STR:
               value = Message.SERIALIZER.read(fin);

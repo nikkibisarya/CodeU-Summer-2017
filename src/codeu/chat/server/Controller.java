@@ -33,6 +33,8 @@ import codeu.chat.common.Access;
 import codeu.chat.common.AccessCode;
 import codeu.chat.common.ChangeAccessRequest;
 
+import codeu.chat.common.PasswordHasher;
+
 public final class Controller implements RawController, BasicController {
 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
@@ -160,8 +162,8 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public User newUser(String name) {
-    return newUser(createId(), name, Time.now());
+  public User newUser(String name, PasswordHasher hasher) {
+    return newUser(createId(), name, Time.now(), hasher);
   }
 
   @Override
@@ -219,7 +221,7 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public User newUser(Uuid id, String name, Time creationTime) {
+  public User newUser(Uuid id, String name, Time creationTime, PasswordHasher hasher) {
 
     User user = null;
 
@@ -233,7 +235,7 @@ public final class Controller implements RawController, BasicController {
 
     } else if (isIdFree(id)) {
 
-      user = new User(id, name, creationTime);
+      user = new User(id, name, creationTime, hasher);
       model.add(user);
 
       // save this current User object to log file

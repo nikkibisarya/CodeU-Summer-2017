@@ -17,7 +17,7 @@ package codeu.chat.client.core;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import codeu.chat.common.BasicController;
+import codeu.chat.common.ClientController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.User;
@@ -27,12 +27,16 @@ public final class UserContext {
 
   public final User user;
   private final BasicView view;
-  private final BasicController controller;
+  private final ClientController controller;
 
-  public UserContext(User user, BasicView view, BasicController controller) {
+  public UserContext(User user, BasicView view, ClientController controller) {
     this.user = user;
     this.view = view;
     this.controller = controller;
+  }
+
+  public boolean joinConversation(ConversationContext conversation) {
+    return controller.joinConversation(conversation.conversation.id, user.id);
   }
 
   public ConversationContext start(String name) {

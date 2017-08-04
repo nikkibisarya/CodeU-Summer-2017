@@ -26,6 +26,7 @@ import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
+import codeu.chat.common.Access;
 
 public final class Chat {
 
@@ -344,7 +345,13 @@ public final class Chat {
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
-            panels.push(createConversationPanel(conversation));
+            boolean access = user.joinConversation(conversation);
+            if (access) {
+              System.out.format("User joined conversation '%s' successfully\n", name);
+              panels.push(createConversationPanel(conversation));
+            } else {
+              System.out.format("ERROR: No access to join conversation '%s'\n", name);
+            }
           }
         } else {
           System.out.println("ERROR: Missing <title>");
@@ -556,6 +563,10 @@ public final class Chat {
         System.out.println("    Add a new message to the current conversation as the current user.");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
+        System.out.println("  get-access");
+        System.out.println("    Get access mode of current user.");
+        System.out.println("  change-access");
+        System.out.println("    Change access of other user.");
         System.out.println("  back");
         System.out.println("    Go back to USER MODE.");
         System.out.println("  exit");
@@ -615,7 +626,34 @@ public final class Chat {
         System.out.println("Conversation Info:");
         System.out.format("  Title : %s\n", conversation.conversation.title);
         System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);
-        System.out.format("  Owner : %s\n" );
+        System.out.format("  Owner : %s\n", conversation.conversation.owner);
+      }
+    });
+
+    panel.register("get-access", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        System.out.println("Current user has access mode: " + conversation.getAccess());
+      }
+    });
+
+    panel.register("change-access", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        if (args.size() >= 2) {
+          final String userName = args.get(0).trim();
+          final String access = args.get(1).trim().toLowerCase();
+          // access is "member", "owner", "remove"
+          final Access accessData = Access.getAccess(access);
+          if (accessData != null && conversation.changeAccess(conversation.user.id, userName, accessData, conversation.conversation.id)) {
+            System.out.format("Current user changed access of '%s' to '%s'\n", userName, access);
+          } else {
+            System.out.format("ERROR: Unable change access of '%s' to '%s'\n", userName, access);
+          }
+
+        } else {
+          System.out.println("ERROR: expecting 2 arguments: mod-access <user_name> <access>");
+        }
       }
     });
 

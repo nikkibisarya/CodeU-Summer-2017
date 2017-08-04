@@ -16,6 +16,7 @@ package codeu.chat.server;
 
 import java.util.Collection;
 import java.lang.NullPointerException;
+import java.lang.String;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -28,6 +29,8 @@ import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.common.Writeable;
+import codeu.chat.common.Access;
+import codeu.chat.common.ChangeAccessRequest;
 
 public final class Controller implements RawController, BasicController {
 
@@ -66,6 +69,71 @@ public final class Controller implements RawController, BasicController {
     } catch (InterruptedException e) {
       System.err.println("fail to insert to queue");
     }
+  }
+
+  public boolean changeAccess(Uuid requestor, String userName, Access access, Uuid conversation) {
+
+    User requestorUser = model.userById().first(requestor);
+    User user = model.userByText().first(userName);
+
+    if(requestorUser == null || user == null) {
+      return false;
+    }
+
+    Access requestorAccess = requestorUser.getConversationAccess(conversation);
+
+    if (access == Access.CREATOR) {
+      return false;
+    }
+
+    if (requestorAccess != Access.CREATOR && requestorAccess != Access.OWNER) {
+      return false;
+    }
+
+    if (requestor.equals(user.id)) {
+      // trying to change self
+      return false;
+    }
+
+    // can't change a CREATOR
+    if (user.getConversationAccess(conversation) == Access.CREATOR) {
+      return false;
+    }
+
+    if (access == Access.NO_ACCESS) {
+      if (user.containsConversationAccess(conversation)) {
+        save(new ChangeAccessRequest(user.id, conversation, Access.NO_ACCESS));
+      }
+      user.removeConversationAccess(conversation);
+    } else {
+      if (user.getConversationAccess(conversation) != access) {
+        save(new ChangeAccessRequest(user.id, conversation, access));
+      }
+      user.addConversationAccess(conversation, access);
+    }
+    return true;
+  }
+
+  public void loadChangeAccess(Uuid userid, Uuid conversationid, Access access) {
+    User user = model.userById().first(userid);
+    ConversationHeader conversation = model.conversationById().first(conversationid);
+
+    if (access == Access.NO_ACCESS) {
+      user.removeConversationAccess(conversationid);
+    } else {
+      user.addConversationAccess(conversationid, access);
+    }
+    LOG.info("loadChangeAccess success: (user=%s, conversation=%s, access=%s)", user.name, conversation.title, access);
+  }
+
+  public Access getAccess(Uuid conversation, Uuid user) {
+    Access access = model.userById().first(user).getConversationAccess(conversation);
+    return access;
+  }
+
+  public boolean joinConversation(Uuid conversation, Uuid user) {
+    User getUser = model.userById().first(user);
+    return getUser.containsConversationAccess(conversation);
   }
 
   @Override
@@ -137,8 +205,13 @@ public final class Controller implements RawController, BasicController {
 
     User user = null;
 
-    if (isIdFree(id)) {
-
+    if (isUsernameInUse(name)) {
+      LOG.info(
+          "newUser fail - name in use (user.id=%s user.name=%s user.time=%s)",
+          id,
+          name,
+          creationTime);
+    } else if (isIdFree(id)) {
       user = new User(id, name, creationTime);
       model.add(user);
 
@@ -150,16 +223,13 @@ public final class Controller implements RawController, BasicController {
           id,
           name,
           creationTime);
-
     } else {
-
       LOG.info(
           "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
           id,
           name,
           creationTime);
     }
-
     return user;
   }
 
@@ -173,6 +243,9 @@ public final class Controller implements RawController, BasicController {
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
       model.add(conversation);
+
+      // add creator access to owner
+      foundOwner.addConversationAccess(id, Access.CREATOR);
 
       // save this current Conversationheader object to log file
       save(conversation);
@@ -274,5 +347,9 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
+
+  private boolean isUsernameInUse(String name) {
+    return model.userByText().first(name) != null;
+  }
 
 }

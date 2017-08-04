@@ -18,13 +18,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import codeu.chat.common.BasicController;
+import codeu.chat.common.ClientController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.Access;
 
 public final class ConversationContext {
 
@@ -32,12 +33,12 @@ public final class ConversationContext {
   public final ConversationHeader conversation;
 
   private final BasicView view;
-  private final BasicController controller;
+  private final ClientController controller;
 
   public ConversationContext(User user,
                              ConversationHeader conversation,
                              BasicView view,
-                             BasicController controller) {
+                             ClientController controller) {
 
     this.user = user;
     this.conversation = conversation;
@@ -45,8 +46,17 @@ public final class ConversationContext {
     this.controller = controller;
   }
 
-  public MessageContext add(String messageBody) {
+  // access = "member", "owner", "remove"
+  // return if ok
+  public boolean changeAccess(Uuid requestor, String userName, Access access, Uuid conversation) {
+    return controller.changeAccess(requestor, userName, access, conversation);
+  }
 
+  public String getAccess() {
+    return controller.getAccess(conversation.id, user.id).toString();
+  }
+
+  public MessageContext add(String messageBody) {
     final Message message = controller.newMessage(user.id,
                                                   conversation.id,
                                                   messageBody);
@@ -57,7 +67,6 @@ public final class ConversationContext {
   }
 
   public MessageContext firstMessage() {
-
     // As it is possible for the conversation to have been updated, so fetch
     // a new copy.
     final ConversationPayload updated = getUpdated();
@@ -68,7 +77,6 @@ public final class ConversationContext {
   }
 
   public MessageContext lastMessage() {
-
     // As it is possible for the conversation to have been updated, so fetch
     // a new copy.
     final ConversationPayload updated = getUpdated();

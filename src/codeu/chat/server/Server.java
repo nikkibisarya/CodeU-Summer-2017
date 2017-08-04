@@ -40,6 +40,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
+import codeu.chat.common.Access;
 
 import codeu.chat.server.FileWriter;
 import codeu.chat.common.Writeable;
@@ -291,6 +292,43 @@ public final class Server {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
         Time.SERIALIZER.write(out, upTime);
         Uuid.SERIALIZER.write(out, version);
+      }
+     });
+
+     this.commands.put(NetworkCode.JOIN_CONVERSATION_REQUEST, new Command() {
+       @Override
+       public void onMessage(InputStream in, OutputStream out) throws IOException {
+         final Uuid conversation = Uuid.SERIALIZER.read(in);
+         final Uuid user = Uuid.SERIALIZER.read(in);
+         boolean access = controller.joinConversation(conversation, user);
+
+         Serializers.INTEGER.write(out, access ? NetworkCode.JOIN_CONVERSATION_RESPONSE_OK : NetworkCode.JOIN_CONVERSATION_RESPONSE_NO_ACCESS);
+       }
+     });
+
+     this.commands.put(NetworkCode.GET_ACCESS_REQUEST, new Command() {
+       @Override
+       public void onMessage(InputStream in, OutputStream out) throws IOException {
+         final Uuid conversation = Uuid.SERIALIZER.read(in);
+         final Uuid user = Uuid.SERIALIZER.read(in);
+
+         final Access access = controller.getAccess(conversation, user);
+         Serializers.INTEGER.write(out, NetworkCode.GET_ACCESS_RESPONSE);
+         Serializers.nullable(Access.SERIALIZER).write(out, access);
+      }
+     });
+
+     this.commands.put(NetworkCode.CHANGE_ACCESS_REQUEST, new Command() {
+       @Override
+       public void onMessage(InputStream in, OutputStream out) throws IOException {
+         final Uuid requestor = Uuid.SERIALIZER.read(in);
+         final String userName = Serializers.STRING.read(in);
+         final Access access = Access.SERIALIZER.read(in);
+         final Uuid conversation = Uuid.SERIALIZER.read(in);
+
+         final boolean result = controller.changeAccess(requestor, userName, access, conversation);
+
+         Serializers.INTEGER.write(out, result ? NetworkCode.CHANGE_ACCESS_RESPONSE_OK : NetworkCode.CHANGE_ACCESS_RESPONSE_FAIL);
       }
      });
 

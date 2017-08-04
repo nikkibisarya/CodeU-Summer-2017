@@ -25,6 +25,7 @@ import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.Access;
 
 public final class ConversationContext {
 
@@ -47,16 +48,15 @@ public final class ConversationContext {
 
   // access = "member", "owner", "remove"
   // return if ok
-  public boolean changeAccess(Uuid requestor, String userName, String access, Uuid conversation) {
+  public boolean changeAccess(Uuid requestor, String userName, Access access, Uuid conversation) {
     return controller.changeAccess(requestor, userName, access, conversation);
   }
 
   public String getAccess() {
-    return controller.getAccess(conversation.id, user.id);
+    return controller.getAccess(conversation.id, user.id).toString();
   }
 
   public MessageContext add(String messageBody) {
-
     final Message message = controller.newMessage(user.id,
                                                   conversation.id,
                                                   messageBody);
@@ -67,7 +67,6 @@ public final class ConversationContext {
   }
 
   public MessageContext firstMessage() {
-
     // As it is possible for the conversation to have been updated, so fetch
     // a new copy.
     final ConversationPayload updated = getUpdated();
@@ -78,7 +77,6 @@ public final class ConversationContext {
   }
 
   public MessageContext lastMessage() {
-
     // As it is possible for the conversation to have been updated, so fetch
     // a new copy.
     final ConversationPayload updated = getUpdated();

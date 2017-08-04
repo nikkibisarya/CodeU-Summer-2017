@@ -33,6 +33,21 @@ import java.util.Map;
 
 public final class User implements Writeable {
 
+  public HashMap<Uuid, Time> UserUpdateMap = new HashMap<Uuid, Time>();
+  public HashMap<Uuid, Time> ConvoUpdateMap = new HashMap<Uuid, Time>();
+  public final Uuid id;
+  public final String name;
+  public final Time creation;
+  // map from conversation id to Access
+  private Map<Uuid, Access> conversationAccessMap;
+
+  public User(Uuid id, String name, Time creation) {
+    this.id = id;
+    this.name = name;
+    this.creation = creation;
+    this.conversationAccessMap = new HashMap<>();
+  }
+
   // get the type of this Writeable as a String
   @Override
   public String getType() {
@@ -49,7 +64,6 @@ public final class User implements Writeable {
 
     @Override
     public void write(OutputStream out, User value) throws IOException {
-
       Uuid.SERIALIZER.write(out, value.id);
       Serializers.STRING.write(out, value.name);
       Time.SERIALIZER.write(out, value.creation);
@@ -58,7 +72,6 @@ public final class User implements Writeable {
 
     @Override
     public User read(InputStream in) throws IOException {
-
       return new User(
           Uuid.SERIALIZER.read(in),
           Serializers.STRING.read(in),
@@ -66,39 +79,20 @@ public final class User implements Writeable {
       );
     }
   };
-  
-  public HashMap<Uuid, Time> UserUpdateMap = new HashMap<Uuid, Time>();
-  public HashMap<Uuid, Time> ConvoUpdateMap = new HashMap<Uuid, Time>();
 
-  public void add(Uuid conversation, Access access) {
-      map.put(conversation, access);
+  public void addConversationAccess(Uuid conversation, Access access) {
+      conversationAccessMap.put(conversation, access);
   }
 
-  public void remove(Uuid conversation) {
-    map.remove(conversation);
+  public void removeConversationAccess(Uuid conversation) {
+    conversationAccessMap.remove(conversation);
   }
 
-  public boolean containsConversation(Uuid conversation) {
-    return map.containsKey(conversation);
+  public boolean containsConversationAccess(Uuid conversation) {
+    return conversationAccessMap.containsKey(conversation);
   }
 
-  public Access get(Uuid conversation) {
-    return map.get(conversation);
-  }
-
-  public final Uuid id;
-  public final String name;
-  public final Time creation;
-
-  // map from conversation id to Access
-  private Map<Uuid, Access> map;
-
-  public User(Uuid id, String name, Time creation) {
-
-    this.id = id;
-    this.name = name;
-    this.creation = creation;
-
-    this.map = new HashMap<>();
+  public Access getConversationAccess(Uuid conversation) {
+    return conversationAccessMap.get(conversation);
   }
 }

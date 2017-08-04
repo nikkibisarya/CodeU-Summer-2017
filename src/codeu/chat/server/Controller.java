@@ -30,7 +30,6 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.common.Writeable;
 import codeu.chat.common.Access;
-import codeu.chat.common.AccessCode;
 import codeu.chat.common.ChangeAccessRequest;
 
 public final class Controller implements RawController, BasicController {
@@ -72,7 +71,7 @@ public final class Controller implements RawController, BasicController {
     }
   }
 
-  public boolean changeAccess(Uuid requestor, String userName, String access, Uuid conversation) {
+  public boolean changeAccess(Uuid requestor, String userName, Access access, Uuid conversation) {
 
     User requestorUser = model.userById().first(requestor);
     User user = model.userByText().first(userName);
@@ -81,8 +80,13 @@ public final class Controller implements RawController, BasicController {
       return false;
     }
 
-    Access requestorAccess = requestorUser.get(conversation);
-    if (requestorAccess!=Access.CREATOR && requestorAccess!=Access.OWNER) {
+    Access requestorAccess = requestorUser.getConversationAccess(conversation);
+
+    if (access == Access.CREATOR) {
+      return false;
+    }
+
+    if (requestorAccess != Access.CREATOR && requestorAccess != Access.OWNER) {
       return false;
     }
 
@@ -92,66 +96,44 @@ public final class Controller implements RawController, BasicController {
     }
 
     // can't change a CREATOR
-    if (user.get(conversation) == Access.CREATOR) {
+    if (user.getConversationAccess(conversation) == Access.CREATOR) {
       return false;
     }
 
-    if (access.equals(AccessCode.CREATOR)) {
-      return false;
-    }
-
-    // TODO: add persistent here
-    switch (access) {
-      case AccessCode.MEMBER:
-        user.add(conversation, Access.MEMBER);
-        save(new ChangeAccessRequest(user.id, conversation, Access.MEMBER));
-        break;
-      case AccessCode.OWNER:
-        user.add(conversation, Access.OWNER);
-        save(new ChangeAccessRequest(user.id, conversation, Access.OWNER));
-        break;
-      case AccessCode.REMOVE:
-        user.remove(conversation);
+    if (access == Access.NO_ACCESS) {
+      if (user.containsConversationAccess(conversation)) {
         save(new ChangeAccessRequest(user.id, conversation, Access.NO_ACCESS));
-        break;
-      default:
-        return false;
+      }
+      user.removeConversationAccess(conversation);
+    } else {
+      if (user.getConversationAccess(conversation) != access) {
+        save(new ChangeAccessRequest(user.id, conversation, access));
+      }
+      user.addConversationAccess(conversation, access);
     }
     return true;
   }
 
   public void loadChangeAccess(Uuid userid, Uuid conversationid, Access access) {
-
     User user = model.userById().first(userid);
     ConversationHeader conversation = model.conversationById().first(conversationid);
 
     if (access == Access.NO_ACCESS) {
-      user.remove(conversationid);
+      user.removeConversationAccess(conversationid);
     } else {
-      user.add(conversationid, access);
+      user.addConversationAccess(conversationid, access);
     }
     LOG.info("loadChangeAccess success: (user=%s, conversation=%s, access=%s)", user.name, conversation.title, access);
-
   }
 
-  // TODO: can combine getAccess and joinConversation?
-  // called from a user that already joined convo
-  public String getAccess(Uuid conversation, Uuid user) {
-    Access access = model.userById().first(user).get(conversation);
-    switch (access) {
-      case MEMBER: return AccessCode.MEMBER;
-      case OWNER: return AccessCode.OWNER;
-      case CREATOR: return AccessCode.CREATOR;
-      default: return AccessCode.NO_ACCESS;
-    }
+  public Access getAccess(Uuid conversation, Uuid user) {
+    Access access = model.userById().first(user).getConversationAccess(conversation);
+    return access;
   }
 
   public boolean joinConversation(Uuid conversation, Uuid user) {
     User getUser = model.userById().first(user);
-
-    return getUser.containsConversation(conversation);
-    //getUser.add(conversation, Access.MEMBER);
-
+    return getUser.containsConversationAccess(conversation);
   }
 
   @Override
@@ -224,15 +206,12 @@ public final class Controller implements RawController, BasicController {
     User user = null;
 
     if (isUsernameInUse(name)) {
-
       LOG.info(
           "newUser fail - name in use (user.id=%s user.name=%s user.time=%s)",
           id,
           name,
           creationTime);
-
     } else if (isIdFree(id)) {
-
       user = new User(id, name, creationTime);
       model.add(user);
 
@@ -244,16 +223,13 @@ public final class Controller implements RawController, BasicController {
           id,
           name,
           creationTime);
-
     } else {
-
       LOG.info(
           "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
           id,
           name,
           creationTime);
     }
-
     return user;
   }
 
@@ -269,7 +245,7 @@ public final class Controller implements RawController, BasicController {
       model.add(conversation);
 
       // add creator access to owner
-      foundOwner.add(id, Access.CREATOR);
+      foundOwner.addConversationAccess(id, Access.CREATOR);
 
       // save this current Conversationheader object to log file
       save(conversation);

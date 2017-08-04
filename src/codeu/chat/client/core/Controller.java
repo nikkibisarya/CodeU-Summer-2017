@@ -28,6 +28,7 @@ import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
 import codeu.chat.common.ClientController;
+import codeu.chat.common.Access;
 
 final class Controller implements ClientController {
 
@@ -39,13 +40,12 @@ final class Controller implements ClientController {
     this.source = source;
   }
 
-  // TODO: add return options, no user found, no access,
-  public boolean changeAccess(Uuid requestor, String userName, String access, Uuid conversation) {
+  public boolean changeAccess(Uuid requestor, String userName, Access access, Uuid conversation) {
     try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_ACCESS_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), requestor);
       Serializers.STRING.write(connection.out(), userName);
-      Serializers.STRING.write(connection.out(), access);
+      Access.SERIALIZER.write(connection.out(), access);
       Uuid.SERIALIZER.write(connection.out(), conversation);
 
       int response = Serializers.INTEGER.read(connection.in());
@@ -66,16 +66,15 @@ final class Controller implements ClientController {
     }
   }
 
-  public String getAccess(Uuid conversation, Uuid user) {
-
-    String response = null;
+  public Access getAccess(Uuid conversation, Uuid user) {
+    Access response = null;
     try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ACCESS_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), conversation);
       Uuid.SERIALIZER.write(connection.out(), user);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ACCESS_RESPONSE) {
-        response = Serializers.nullable(Serializers.STRING).read(connection.in());
+        response = Serializers.nullable(Access.SERIALIZER).read(connection.in());
         LOG.info("Got access success");
       } else {
         LOG.error("Response from server failed.");
@@ -88,7 +87,6 @@ final class Controller implements ClientController {
   }
 
   public boolean joinConversation(Uuid conversation, Uuid user) {
-
     try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.JOIN_CONVERSATION_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), conversation);
@@ -238,7 +236,7 @@ final class Controller implements ClientController {
   public boolean addConversationInterest(String title, Uuid owner) {
 
     boolean response = false;
-    
+
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_CONVERSATION_INTEREST_REQUEST);

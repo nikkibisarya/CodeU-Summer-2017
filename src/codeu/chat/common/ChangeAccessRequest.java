@@ -12,6 +12,16 @@ import codeu.chat.util.Uuid;
 import codeu.chat.common.Access;
 
 public class ChangeAccessRequest implements Writeable {
+  // map from conversation id to Access
+  public final Uuid user;
+  public final Uuid conversation;
+  public final Access access;
+
+  public ChangeAccessRequest(Uuid user, Uuid conversation, Access access) {
+    this.user = user;
+    this.conversation = conversation;
+    this.access = access;
+  }
 
   // get the type of this Writeable as a String
   @Override
@@ -25,39 +35,17 @@ public class ChangeAccessRequest implements Writeable {
     SERIALIZER.write(out, (ChangeAccessRequest)value);
   }
 
-  // map from conversation id to Access
-  public final Uuid user;
-  public final Uuid conversation;
-  public final Access access;
-
-  public ChangeAccessRequest(Uuid user, Uuid conversation, Access access) {
-    this.user = user;
-    this.conversation = conversation;
-    this.access = access;
-  }
-
   public static final Serializer<ChangeAccessRequest> SERIALIZER = new Serializer<ChangeAccessRequest>() {
-
     @Override
     public void write(OutputStream out, ChangeAccessRequest value) throws IOException {
       Uuid.SERIALIZER.write(out, value.user);
       Uuid.SERIALIZER.write(out, value.conversation);
-      Serializers.INTEGER.write(out, value.access.getAccessNum());
+      Access.SERIALIZER.write(out, value.access);
     }
 
     @Override
     public ChangeAccessRequest read(InputStream in) throws IOException {
-
-      return new ChangeAccessRequest(Uuid.SERIALIZER.read(in), Uuid.SERIALIZER.read(in), Access.get(Serializers.INTEGER.read(in)));
-      // TODO: add reading convoid, access, convoid, access, ...
-      // add to map
-      // return new ChangeAccessRequest(map)
-
-      // return new User(
-      //     Uuid.SERIALIZER.read(in),
-      //     Serializers.STRING.read(in),
-      //     Time.SERIALIZER.read(in)
-      // );
+      return new ChangeAccessRequest(Uuid.SERIALIZER.read(in), Uuid.SERIALIZER.read(in), Access.SERIALIZER.read(in));
     }
   };
 

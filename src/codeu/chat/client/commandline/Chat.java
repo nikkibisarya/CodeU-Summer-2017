@@ -27,6 +27,7 @@ import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
+import codeu.chat.common.Access;
 
 import java.io.Console;
 import codeu.chat.common.PasswordHasher;
@@ -679,10 +680,10 @@ public final class Chat {
       public void invoke(List<String> args) {
         if (args.size() >= 2) {
           final String userName = args.get(0).trim();
-          final String access = args.get(1).trim();
+          final String access = args.get(1).trim().toLowerCase();
           // access is "member", "owner", "remove"
-
-          if (conversation.changeAccess(conversation.user.id, userName, access, conversation.conversation.id)) {
+          final Access accessData = Access.getAccess(access);
+          if (accessData != null && conversation.changeAccess(conversation.user.id, userName, accessData, conversation.conversation.id)) {
             System.out.format("Current user changed access of '%s' to '%s'\n", userName, access);
           } else {
             System.out.format("ERROR: Unable change access of '%s' to '%s'\n", userName, access);

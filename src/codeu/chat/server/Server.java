@@ -40,6 +40,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
+import codeu.chat.common.Access;
 
 import codeu.chat.server.FileWriter;
 import codeu.chat.common.Writeable;
@@ -314,9 +315,9 @@ public final class Server {
          final Uuid conversation = Uuid.SERIALIZER.read(in);
          final Uuid user = Uuid.SERIALIZER.read(in);
 
-         final String access = controller.getAccess(conversation, user);
+         final Access access = controller.getAccess(conversation, user);
          Serializers.INTEGER.write(out, NetworkCode.GET_ACCESS_RESPONSE);
-         Serializers.nullable(Serializers.STRING).write(out, access);
+         Serializers.nullable(Access.SERIALIZER).write(out, access);
       }
      });
 
@@ -325,7 +326,7 @@ public final class Server {
        public void onMessage(InputStream in, OutputStream out) throws IOException {
          final Uuid requestor = Uuid.SERIALIZER.read(in);
          final String userName = Serializers.STRING.read(in);
-         final String access = Serializers.STRING.read(in);
+         final Access access = Access.SERIALIZER.read(in);
          final Uuid conversation = Uuid.SERIALIZER.read(in);
 
          final boolean result = controller.changeAccess(requestor, userName, access, conversation);

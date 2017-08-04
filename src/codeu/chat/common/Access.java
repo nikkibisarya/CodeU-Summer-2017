@@ -1,22 +1,58 @@
 package codeu.chat.common;
 
-public enum Access {
-  MEMBER (3), OWNER (2), CREATOR (1), NO_ACCESS (0);
-  // NO_ACCESS is used for ChangeAccessRequest
+import codeu.chat.util.Serializer;
+import codeu.chat.util.Serializers;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-  private final int access;
-  Access(int access) {
-    this.access = access;
-  }
-  int getAccessNum() {
-    return this.access;
-  }
-  static Access get(int i) {
-    switch (i) {
-      case 1: return Access.CREATOR;
-      case 2: return Access.OWNER;
-      case 3: return Access.MEMBER;
-      default: return Access.NO_ACCESS;
+public enum Access {
+  MEMBER {
+    @Override
+    public String toString() {
+      return "member";
+    }
+  },
+  OWNER {
+    @Override
+    public String toString() {
+      return "owner";
+    }
+  },
+  CREATOR {
+    @Override
+    public String toString() {
+      return "creator";
+    }
+  },
+  NO_ACCESS {
+    @Override
+    public String toString() {
+      return "remove";
+    }
+  };
+
+  public static Access getAccess(String str) {
+    str = str.toLowerCase();
+    switch (str) {
+      case "member": return Access.MEMBER;
+      case "owner": return Access.OWNER;
+      case "creator": return Access.CREATOR;
+      case "remove": return Access.NO_ACCESS;
+      default: return null;
     }
   }
+
+  public static final Serializer<Access> SERIALIZER = new Serializer<Access>() {
+
+    @Override
+    public void write(OutputStream out, Access value) throws IOException {
+      Serializers.STRING.write(out, value.toString());
+    }
+
+    @Override
+    public Access read(InputStream in) throws IOException {
+      return getAccess(Serializers.STRING.read(in));
+    }
+  };
 }
